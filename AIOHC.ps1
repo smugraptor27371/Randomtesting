@@ -15,7 +15,7 @@ cls
 
 Do { 
     cls
-    Invoke-Command $MainMenu
+    & $MainMenu
     $Select = Read-Host
     Switch ($Select)
     {
