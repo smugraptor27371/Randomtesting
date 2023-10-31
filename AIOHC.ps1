@@ -1,6 +1,6 @@
 ﻿$MainMenu = {
     Write-Host " ***************************"
-    Write-Host " *           Menu          *" 
+    Write-Host " *         Main Menu       *" 
     Write-Host " ***************************" 
     Write-Host 
     Write-Host " 1.) HCSSD" 
