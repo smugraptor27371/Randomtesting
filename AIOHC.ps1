@@ -1,4 +1,4 @@
-﻿$MainMenu = {
+$MainMenu = {
     Write-Host " ***************************"
     Write-Host " *         Main Menu       *" 
     Write-Host " ***************************" 
