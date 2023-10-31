@@ -171,7 +171,7 @@ New-Item -Path (Get-PSReadlineOption).HistorySavePath -Force
             Read-Host "Press Enter to continue..."
         }
         2 {
-            Write-Host "Option 2 selected. Executing corresponding code."
+            Write-Host "HCPFSSD Selected only updating specific apps."
             
  
 
@@ -295,9 +295,11 @@ Write-Host "Executing SFC..."
 Start-Process -FilePath "C:\Windows\System32\sfc.exe" -ArgumentList "/scannow" -Wait
 
 
-winget update google.chrome
-winget update mozilla.firefox
-Winget update thedocumentfoundation.libreoffice
+winget update google.chrome --accept-source-agreements --accept-package-agreements
+winget update mozilla.firefox --accept-source-agreements --accept-package-agreements
+Winget update thedocumentfoundation.libreoffice --accept-source-agreements --accept-package-agreements
+winget update Adobe.Acrobat.Reader.64-bit --accept-source-agreements --accept-package-agreements
+
 
 
 Write-host "defrag/trim" 
