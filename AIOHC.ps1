@@ -395,10 +395,6 @@ Write-Host "12) Forcing discovery..."
     ipconfig /flushdns
 
     Write-Host "Process complete. Please reboot your computer."
-
-    $ButtonType = [System.Windows.MessageBoxButton]::OK
-    $MessageboxTitle = "Reset Windows Update "
-    $Messageboxbody = ("Stock settings loaded.`n Please reboot your computer")
     
     Write-Host "==============================================="
     Write-Host "-- Reset All Windows Update Settings to Stock -"
