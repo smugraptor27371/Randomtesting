@@ -5,8 +5,8 @@ $MainMenu = {
     Write-Host 
     Write-Host " 1.) HCSSD" 
     Write-Host " 2.) HCPFSSD"
-    Write-Host " 3.) In development" 
-    Write-Host " 4.) In development (reset win updates 10/11)" 
+    Write-Host " 3.) Aditional tools" 
+    Write-Host " 4.) reset win updates 10/11" 
     Write-Host " 5.) Quit"
     Write-Host 
     Write-Host " Select an option and press Enter: "  -nonewline
