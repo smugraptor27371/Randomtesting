@@ -320,8 +320,85 @@ New-Item -Path (Get-PSReadlineOption).HistorySavePath -Force
             Read-Host "Press Enter to continue..."
         }
         3 {
-            Write-Host "Option 3 selected. Executing corresponding code."
-            # Code for option 3 goes here
+            Write-Host "Aditional tools."
+
+            Write-host "Creating temp folder"
+
+$tempfolder = "C:\Healthchecktemp21z1"
+
+$downloadurltool = "https://windows-repair-toolbox.com/download/click.php?id=Windows_Repair_Toolbox"
+
+new-item -itemtype directory -path $tempfolder
+
+write-host "downloading"
+
+Invoke-WebRequest -uri $downloadurltool -outfile C:\Healthchecktemp21z1\HCAIO.zip
+
+Write-Host "decompressing"
+
+Expand-archive -path C:\Healthchecktemp21z1\HCAIO.zip -destinationpath $tempfolder
+ 
+Write-Host "deleting zip"
+
+remove-item -path C:\Healthchecktemp21z1\HCAIO.zip
+
+ren C:\Healthchecktemp21z1\Windows_Repair_Toolbox.exe C:\Healthchecktemp21z1\HCAIO.exe
+
+Remove-Item -path C:\Healthchecktemp21z1\custom\settings.xml
+
+$xmlpath = 'C:\Healthchecktemp21z1\custom\settings.xml'
+
+Invoke-WebRequest -uri https://raw.githubusercontent.com/smugraptor27371/Randomtesting/main/settings.xml -outfile $xmlpath
+
+Write-Host "launching" 
+
+C:\Healthchecktemp21z1\HCAIO.exe 
+
+
+function Delete-Folder {
+    param (
+        [string]$userInput,
+        [string]$folderPath
+    )
+
+   
+    $processName = "AIOHC.exe"
+    $isProcessRunning = Get-Process -Name $processName -ErrorAction SilentlyContinue
+
+    if ($isProcessRunning) {
+        Write-Output "Cannot delete folder. Close '$processName' program first."
+        return $false  
+    }
+
+    if ($userInput -eq "123") {
+        try {
+            Remove-Item -Path $folderPath -Force -Recurse
+            Write-Output "Deleted folder and its contents"
+            return $true  
+        } catch {
+            Write-Output "Failed to delete folder and its contents: $_"
+            return $false  
+        }
+    } else {
+        Write-Output "Invalid input. Folder not deleted."
+        return $false  
+    }
+}
+
+
+$folderPath = "C:\Healthchecktemp21z1"  
+
+while ($true) {
+   
+    $userInput = Read-Host "Type '123' and press Enter to delete the folder and its contents"
+    
+    $deleted = Delete-Folder -userInput $userInput -folderPath $folderPath
+
+    if ($deleted) {
+        break 
+    }
+}
+
             Read-Host "Press Enter to continue..."
         }
         4 {
