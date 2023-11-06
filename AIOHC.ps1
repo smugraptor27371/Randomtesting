@@ -65,9 +65,9 @@ while ($UpdateInProgress) {
 
 Write-Host "Windows Defender update completed."
 
-# Perform a full scan with Windows Defender
-Write-Host "Performing a full scan with Windows Defender..."
-Start-MpScan -ScanType FullScan -ScanPath $env:SystemDrive -Verbose
+# Perform a scan with Windows Defender
+Write-Host "Performing a scan with Windows Defender..."
+Start-MpScan -ScanType Quickscan -ScanPath $env:SystemDrive -Verbose
 
 
 
@@ -222,9 +222,9 @@ while ($UpdateInProgress) {
 
 Write-Host "Windows Defender update completed."
 
-# Perform a full scan with Windows Defender
-Write-Host "Performing a full scan with Windows Defender..."
-Start-MpScan -ScanType FullScan -ScanPath $env:SystemDrive -Verbose
+# Perform a scan with Windows Defender
+Write-Host "Performing a scan with Windows Defender..."
+Start-MpScan -ScanType quickscan -ScanPath $env:SystemDrive -Verbose
 
 
 
