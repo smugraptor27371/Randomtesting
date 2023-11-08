@@ -177,7 +177,10 @@ New-Item -Path (Get-PSReadlineOption).HistorySavePath -Force
  
 
 
-Start-Transcript -Path "$env:USERPROFILE\Desktop\transcript.txt"
+$log = "$env:USERPROFILE\Desktop\transcript.txt"
+
+
+Start-Transcript -Path "$log"
 
 $computerSystem = Get-CimInstance CIM_ComputerSystem
 $computerBIOS = Get-CimInstance CIM_BIOSElement
