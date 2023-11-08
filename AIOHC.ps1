@@ -22,9 +22,10 @@ Do {
         1 {
             Write-Host "HCSSD selected may take a while."
             
+$log = "$env:USERPROFILE\Desktop\transcript.txt"
 
 
-Start-Transcript -Path "$env:USERPROFILE\Desktop\transcript.txt"
+Start-Transcript -Path "$log"
 
 $computerSystem = Get-CimInstance CIM_ComputerSystem
 $computerBIOS = Get-CimInstance CIM_BIOSElement
@@ -93,7 +94,7 @@ if (Test-Path $filePath1) {
     $arguments1 = "-silent -accepteula -processlevel 3"
     
     # Run Kaspersky Virus Removal Tool with the specified arguments
-    Start-Process -FilePath $filePath1 -ArgumentList $arguments1 -Wait
+    Start-Process -FilePath $filePath1 -ArgumentList $arguments1 -redirectstandardoutput $log -redirectStandarderror $log  -Wait
     
     # Clean up the downloaded file after the execution
     Remove-Item $filePath1 -Force
