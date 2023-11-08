@@ -119,7 +119,7 @@ Start-Sleep -Seconds 30
 # Check if the file was downloaded successfully
 if (Test-Path $filePath) {
     # Run ADWCleaner with the specified arguments
-    Start-Process -FilePath $filePath -ArgumentList "/eula", "/clean", "/noreboot" -Wait
+    Start-Process -FilePath $filePath -ArgumentList "/eula", "/clean", "/noreboot"  -redirectstandardoutput $log -Wait
     # Clean up the downloaded file after the execution
     Remove-Item $filePath -Force
     Write-Host "adwclean done"
