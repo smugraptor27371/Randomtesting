@@ -94,7 +94,7 @@ if (Test-Path $filePath1) {
     $arguments1 = "-silent -accepteula -processlevel 3"
     
     # Run Kaspersky Virus Removal Tool with the specified arguments
-    Start-Process -FilePath $filePath1 -ArgumentList $arguments1 -redirectstandardoutput $log -redirectStandarderror $log  -Wait
+    Start-Process -FilePath $filePath1 -ArgumentList $arguments1 -redirectstandardoutput $log  -Wait
     
     # Clean up the downloaded file after the execution
     Remove-Item $filePath1 -Force
