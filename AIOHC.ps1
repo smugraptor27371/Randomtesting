@@ -22,7 +22,7 @@ Do {
         1 {
             Write-Host "HCSSD selected may take a while."
             
-$log = "$env:USERPROFILE\Desktop\transcript.txt"
+$log = "$env:USERPROFILE\Desktop\HEALTHCHECKLOGS\transcript.txt"
 
 
 Start-Transcript -Path "$log"
@@ -94,10 +94,11 @@ if (Test-Path $filePath1) {
     $arguments1 = "-silent -accepteula -processlevel 3"
     
     # Run Kaspersky Virus Removal Tool with the specified arguments
-    Start-Process -FilePath $filePath1 -ArgumentList $arguments1 -redirectstandardoutput $log  -Wait
+    Start-Process -FilePath $filePath1 -ArgumentList $arguments1 -redirectstandardoutput "$env:USERPROFILE\Desktop\HEALTHCHECKLOGS\KVRT.txt" -wait
+ 
     
     # Clean up the downloaded file after the execution
-    Remove-Item $filePath1 -Force
+    Remove-Item $filePath1 -Force -erroraction silentlycontinue
 }
 else {
     Write-Host "Failed to download Kaspersky Virus Removal Tool."
@@ -113,15 +114,14 @@ $filePath = "$env:TEMP\adwcleaner.exe"
 # Download ADWCleaner
 Invoke-WebRequest -Uri $downloadUrl -OutFile $filePath
 
-# Wait for the download to complete (adjust the sleep time as needed)
-Start-Sleep -Seconds 30
+
 
 # Check if the file was downloaded successfully
 if (Test-Path $filePath) {
     # Run ADWCleaner with the specified arguments
-    Start-Process -FilePath $filePath -ArgumentList "/eula", "/clean", "/noreboot"  -redirectstandardoutput $log -Wait
+    Start-Process -FilePath $filePath -ArgumentList "/eula", "/clean", "/noreboot"  -redirectstandardoutput  "$env:USERPROFILE\Desktop\HEALTHCHECKLOGS\ADW.txt" -wait
     # Clean up the downloaded file after the execution
-    Remove-Item $filePath -Force
+    Remove-Item $filePath -Force -erroraction silentlycontinue
     Write-Host "adwclean done"
 }
 else {
@@ -158,8 +158,6 @@ defrag /C /O /V
 
 stop-transcript
 
-notepad "$env:USERPROFILE\Desktop\transcript.txt"
-
 
 
 Remove-Item C:\KVRT2020_Data -recurse -erroraction:silentlycontinue
@@ -177,7 +175,7 @@ New-Item -Path (Get-PSReadlineOption).HistorySavePath -Force
  
 
 
-$log = "$env:USERPROFILE\Desktop\transcript.txt"
+$log = "$env:USERPROFILE\Desktop\HEALTHCHECKLOGS\transcript.txt"
 
 
 Start-Transcript -Path "$log"
@@ -204,10 +202,6 @@ Write-Host "System Information for: " $computerSystem.Name -BackgroundColor Dark
 
 
 Get-Disk | Get-StorageReliabilityCounter | Select-Object -Property "*"
-
-
-
-
 
 
 
@@ -247,26 +241,20 @@ $filePath1 = "$env:TEMP\KVRT.exe"
 # Download Kaspersky Virus Removal Tool
 Invoke-WebRequest -Uri $downloadUrl1 -OutFile $filePath1
 
-# Wait for the download to complete (adjust the sleep time as needed)
-Start-Sleep -Seconds 10
-
 # Check if the file was downloaded successfully
 if (Test-Path $filePath1) {
     # Define the command-line arguments
     $arguments1 = "-silent -accepteula -processlevel 3"
     
     # Run Kaspersky Virus Removal Tool with the specified arguments
-    Start-Process -FilePath $filePath1 -ArgumentList $arguments1 -redirectstandardoutput $log-Wait
+    Start-Process -FilePath $filePath1 -ArgumentList $arguments1 -redirectstandardoutput "$env:USERPROFILE\Desktop\HEALTHCHECKLOGS\KVRT.txt" -Wait
     
     # Clean up the downloaded file after the execution
-    Remove-Item $filePath1 -Force
+    Remove-Item $filePath1 -Force -erroraction silentlycontinue
 }
 else {
     Write-Host "Failed to download Kaspersky Virus Removal Tool."
 }
-
-
-
 
 # Define the URL and file path
 $downloadUrl = "https://adwcleaner.malwarebytes.com/adwcleaner?channel=release"
@@ -275,15 +263,13 @@ $filePath = "$env:TEMP\adwcleaner.exe"
 # Download ADWCleaner
 Invoke-WebRequest -Uri $downloadUrl -OutFile $filePath
 
-# Wait for the download to complete (adjust the sleep time as needed)
-Start-Sleep -Seconds 30
 
 # Check if the file was downloaded successfully
 if (Test-Path $filePath) {
     # Run ADWCleaner with the specified arguments
-    Start-Process -FilePath $filePath -ArgumentList "/eula", "/clean", "/noreboot" -redirectstandardoutput $log -Wait
+    Start-Process -FilePath $filePath -ArgumentList "/eula", "/clean", "/noreboot" -redirectstandardoutput   Start-Process -FilePath $filePath1 -ArgumentList $arguments1 -RedirectStandardOutput "$env:USERPROFILE\Desktop\HEALTHCHECKLOGS\ADW.txt" -Wait 
     # Clean up the downloaded file after the execution
-    Remove-Item $filePath -Force
+    Remove-Item $filePath -Force -erroraction silentlycontinue
     Write-Host "adwclean done"
 }
 else {
@@ -311,11 +297,11 @@ defrag /C /O /V
 
 stop-transcript
 
-notepad "$env:USERPROFILE\Desktop\transcript.txt"
+
 
 
 Remove-Item C:\KVRT2020_Data -recurse -erroraction:silentlycontinue
-New-Item -Path (Get-PSReadlineOption).HistorySavePath -Force
+
 
 
 
@@ -484,3 +470,6 @@ Write-Host "12) Forcing discovery..."
         }
     }
 } While ($Select -ne 5)
+
+Write-host "wiping PShistory
+New-Item -Path (Get-PSReadlineOption).HistorySavePath -Force
