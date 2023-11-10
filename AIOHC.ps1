@@ -267,7 +267,7 @@ Invoke-WebRequest -Uri $downloadUrl -OutFile $filePath
 # Check if the file was downloaded successfully
 if (Test-Path $filePath) {
     # Run ADWCleaner with the specified arguments
-    Start-Process -FilePath $filePath -ArgumentList "/eula", "/clean", "/noreboot" -redirectstandardoutput   Start-Process -FilePath $filePath1 -ArgumentList $arguments1 -RedirectStandardOutput "$env:USERPROFILE\Desktop\HEALTHCHECKLOGS\ADW.txt" -Wait 
+    Start-Process -FilePath $filePath -ArgumentList "/eula", "/clean", "/noreboot" -RedirectStandardOutput "$env:USERPROFILE\Desktop\HEALTHCHECKLOGS\ADW.txt" -Wait 
     # Clean up the downloaded file after the execution
     Remove-Item $filePath -Force -erroraction silentlycontinue
     Write-Host "adwclean done"
