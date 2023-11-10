@@ -20,12 +20,15 @@ Do {
     Switch ($Select)
     {
         1 {
-            Write-Host "HCSSD selected may take a while."
-            
+            Write-Host "HCSSD selected updating all apps."
+ newitem -path "$env:USERPROFILE\Desktop\HEALTHCHECKLOGS" -itemtype directory           
+
+
 $log = "$env:USERPROFILE\Desktop\HEALTHCHECKLOGS\transcript.txt"
 
 
 Start-Transcript -Path "$log"
+
 
 $computerSystem = Get-CimInstance CIM_ComputerSystem
 $computerBIOS = Get-CimInstance CIM_BIOSElement
@@ -173,6 +176,7 @@ New-Item -Path (Get-PSReadlineOption).HistorySavePath -Force
             Write-Host "HCPFSSD Selected only updating specific apps."
             
  
+ newitem -path "$env:USERPROFILE\Desktop\HEALTHCHECKLOGS" -itemtype directory           
 
 
 $log = "$env:USERPROFILE\Desktop\HEALTHCHECKLOGS\transcript.txt"
