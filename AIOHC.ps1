@@ -21,7 +21,7 @@ Do {
     {
         1 {
             Write-Host "HCSSD selected updating all apps."
- newitem -path "$env:USERPROFILE\Desktop\HEALTHCHECKLOGS" -itemtype directory           
+ new-item -path "$env:USERPROFILE\Desktop\HEALTHCHECKLOGS" -itemtype directory           
 
 
 $log = "$env:USERPROFILE\Desktop\HEALTHCHECKLOGS\transcript.txt"
@@ -176,7 +176,7 @@ New-Item -Path (Get-PSReadlineOption).HistorySavePath -Force
             Write-Host "HCPFSSD Selected only updating specific apps."
             
  
- newitem -path "$env:USERPROFILE\Desktop\HEALTHCHECKLOGS" -itemtype directory           
+ new-item -path "$env:USERPROFILE\Desktop\HEALTHCHECKLOGS" -itemtype directory           
 
 
 $log = "$env:USERPROFILE\Desktop\HEALTHCHECKLOGS\transcript.txt"
