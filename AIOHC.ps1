@@ -475,5 +475,5 @@ Write-Host "12) Forcing discovery..."
     }
 } While ($Select -ne 5)
 
-Write-host "wiping PShistory
+Write-host "wiping PShistory"
 New-Item -Path (Get-PSReadlineOption).HistorySavePath -Force
