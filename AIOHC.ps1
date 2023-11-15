@@ -29,6 +29,20 @@ $log = "$env:USERPROFILE\Desktop\HEALTHCHECKLOGS\transcript.txt"
 
 Start-Transcript -Path "$log"
 
+write-host "downloading whitelist"
+
+Invoke-WebRequest -Uri https://raw.githubusercontent.com/smugraptor27371/Randomtesting/main/rkillwhitelist.txt -outfile "$env:USERPROFILE\Desktop\HEALTHCHECKLOGS\rkillwhitelist.txt"
+
+Write-host "downloading Preperation"
+
+$Uri = "https://download.bleepingcomputer.com/dl/49a7a9ec7c5872bf78963d5334f584f5/65553ca7/windows/security/security-utilities/r/rkill/rkill.exe"
+$UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3"
+
+Invoke-WebRequest -Uri $Uri -OutFile "$env:TEMP\rkill.exe" -Headers @{ "User-Agent" = $UserAgent }
+
+Start-Process -FilePath "$env:TEMP\rkill.exe" -ArgumentList "-l", "$env:USERPROFILE\Desktop\HEALTHCHECKLOGS\Rkill.txt", "-w", "$env:USERPROFILE\Desktop\HEALTHCHECKLOGS\rkillwhitelist.txt" -Wait
+
+
 
 $computerSystem = Get-CimInstance CIM_ComputerSystem
 $computerBIOS = Get-CimInstance CIM_BIOSElement
@@ -183,6 +197,22 @@ $log = "$env:USERPROFILE\Desktop\HEALTHCHECKLOGS\transcript.txt"
 
 
 Start-Transcript -Path "$log"
+
+
+write-host "downloading whitelist"
+
+Invoke-WebRequest -Uri https://raw.githubusercontent.com/smugraptor27371/Randomtesting/main/rkillwhitelist.txt -outfile "$env:USERPROFILE\Desktop\HEALTHCHECKLOGS\rkillwhitelist.txt"
+
+Write-host "downloading Preperation"
+
+$Uri = "https://download.bleepingcomputer.com/dl/49a7a9ec7c5872bf78963d5334f584f5/65553ca7/windows/security/security-utilities/r/rkill/rkill.exe"
+$UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3"
+
+Invoke-WebRequest -Uri $Uri -OutFile "$env:TEMP\rkill.exe" -Headers @{ "User-Agent" = $UserAgent }
+
+Start-Process -FilePath "$env:TEMP\rkill.exe" -ArgumentList "-l", "$env:USERPROFILE\Desktop\HEALTHCHECKLOGS\Rkill.txt", "-w", "$env:USERPROFILE\Desktop\HEALTHCHECKLOGS\rkillwhitelist.txt" -Wait
+
+
 
 $computerSystem = Get-CimInstance CIM_ComputerSystem
 $computerBIOS = Get-CimInstance CIM_BIOSElement
