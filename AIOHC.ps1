@@ -35,10 +35,10 @@ Invoke-WebRequest -Uri https://raw.githubusercontent.com/smugraptor27371/Randomt
 
 Write-host "downloading Preperation"
 
-$Uri = "https://download.bleepingcomputer.com/dl/49a7a9ec7c5872bf78963d5334f584f5/65553ca7/windows/security/security-utilities/r/rkill/rkill.exe"
-$UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3"
+$iwr = Invoke-WebRequest -Uri "https://www.bleepingcomputer.com/download/rkill/dl/10/"
+$directlink = ($iwr.content | select-string -Pattern "url=.+rkill\.exe" -AllMatches).matches.value -replace "url=",""
 
-Invoke-WebRequest -Uri $Uri -OutFile "$env:TEMP\rkill.exe" -Headers @{ "User-Agent" = $UserAgent }
+Invoke-WebRequest -Uri $directlink -outfile "$env:TEMP\rkill.exe" 
 
 Start-Process -FilePath "$env:TEMP\rkill.exe" -ArgumentList "-l", "$env:USERPROFILE\Desktop\HEALTHCHECKLOGS\Rkill.txt", "-w", "$env:USERPROFILE\Desktop\HEALTHCHECKLOGS\rkillwhitelist.txt" -Wait
 
@@ -205,10 +205,10 @@ Invoke-WebRequest -Uri https://raw.githubusercontent.com/smugraptor27371/Randomt
 
 Write-host "downloading Preperation"
 
-$Uri = "https://download.bleepingcomputer.com/dl/49a7a9ec7c5872bf78963d5334f584f5/65553ca7/windows/security/security-utilities/r/rkill/rkill.exe"
-$UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3"
+$iwr = Invoke-WebRequest -Uri "https://www.bleepingcomputer.com/download/rkill/dl/10/"
+$directlink = ($iwr.content | select-string -Pattern "url=.+rkill\.exe" -AllMatches).matches.value -replace "url=",""
 
-Invoke-WebRequest -Uri $Uri -OutFile "$env:TEMP\rkill.exe" -Headers @{ "User-Agent" = $UserAgent }
+Invoke-WebRequest -Uri $directlink -outfile "$env:TEMP\rkill.exe" 
 
 Start-Process -FilePath "$env:TEMP\rkill.exe" -ArgumentList "-l", "$env:USERPROFILE\Desktop\HEALTHCHECKLOGS\Rkill.txt", "-w", "$env:USERPROFILE\Desktop\HEALTHCHECKLOGS\rkillwhitelist.txt" -Wait
 
