@@ -1,27 +1,26 @@
-$MainMenu = {
+function Show-MainMenu {
     Write-Host " ***************************"
     Write-Host " *         Main Menu       *" 
     Write-Host " ***************************" 
     Write-Host 
     Write-Host " 1.) HCSSD" 
     Write-Host " 2.) HCPFSSD"
-    Write-Host " 3.) Aditional tools" 
-    Write-Host " 4.) reset win updates 10/11" 
-    Write-Host " 5.) Quit And Cleanup"
+    Write-Host " 3.) Additional tools" 
+    Write-Host " 4.) Reset Win Updates 10/11" 
+    Write-Host " 5.) Option 5"
+    Write-Host " 6.) Option 6"
+    Write-Host " 7.) Option 7"
+    Write-Host " 8.) Option 8"
+    Write-Host " 9.) Option 9"
+    Write-Host "10.) Option 10"
+    Write-Host "11.) Quit And Cleanup"
     Write-Host 
     Write-Host " Select an option and press Enter: "  -nonewline
 }
-cls
 
-Do { 
-    cls
-    & $MainMenu
-    $Select = Read-Host
-    Switch ($Select)
-    {
-        1 {
-            Write-Host "HCSSD selected updating all apps."
- new-item -path "$env:USERPROFILE\Desktop\HEALTHCHECKLOGS" -itemtype directory           
+function Execute-HCSSD {
+    Write-Host "HCSSD selected updating all apps."
+    new-item -path "$env:USERPROFILE\Desktop\HEALTHCHECKLOGS" -itemtype directory           
 
 
 $log = "$env:USERPROFILE\Desktop\HEALTHCHECKLOGS\transcript.txt"
@@ -153,6 +152,14 @@ Start-Process -FilePath "C:\Windows\System32\Dism.exe" -ArgumentList "/Online /C
 Write-Host "Executing SFC..."
 Start-Process -FilePath "C:\Windows\System32\sfc.exe" -ArgumentList "/scannow" -Wait
 
+# Execute DISM because sometimes it needs to do it multiple times
+Write-Host "Executing DISM..."
+Start-Process -FilePath "C:\Windows\System32\Dism.exe" -ArgumentList "/Online /Cleanup-Image /RestoreHealth" -Wait
+
+# Execute SFC again sometimes it needs multiple runs
+Write-Host "Executing SFC..."
+Start-Process -FilePath "C:\Windows\System32\sfc.exe" -ArgumentList "/scannow" -Wait
+
 # Define a function to check if any updates are still in progress
 function AreUpdatesInProgress {
     $output = winget upgrade --all --accept-source-agreements --accept-package-agreements --silent
@@ -180,17 +187,12 @@ stop-transcript
 Remove-Item C:\KVRT2020_Data -recurse -erroraction:silentlycontinue
 New-Item -Path (Get-PSReadlineOption).HistorySavePath -Force
 
+    Read-Host "Press Enter to continue..."
+}
 
-
-
-
-            Read-Host "Press Enter to continue..."
-        }
-        2 {
-            Write-Host "HCPFSSD Selected only updating specific apps."
-            
- 
- new-item -path "$env:USERPROFILE\Desktop\HEALTHCHECKLOGS" -itemtype directory           
+function Execute-HCPFSSD {
+    Write-Host "HCPFSSD Selected only updating specific apps."
+   new-item -path "$env:USERPROFILE\Desktop\HEALTHCHECKLOGS" -itemtype directory           
 
 
 $log = "$env:USERPROFILE\Desktop\HEALTHCHECKLOGS\transcript.txt"
@@ -336,19 +338,12 @@ stop-transcript
 
 Remove-Item C:\KVRT2020_Data -recurse -erroraction:silentlycontinue
 
+    Read-Host "Press Enter to continue..."
+}
 
-
-
-
-
-            Read-Host "Press Enter to continue..."
-        }
-        3 {
-            Write-Host "Aditional tools."
-
-            Write-host "Creating temp folder"
-
-$tempfolder = "C:\Healthchecktemp21z1"
+function Execute-AdditionalTools {
+    Write-Host "Additional tools."
+    $tempfolder = "C:\Healthchecktemp21z1"
 
 $downloadurltool = "https://windows-repair-toolbox.com/download/click.php?id=Windows_Repair_Toolbox"
 
@@ -408,8 +403,6 @@ function Delete-Folder {
         return $false  
     }
 }
-
-
 $folderPath = "C:\Healthchecktemp21z1"  
 
 while ($true) {
@@ -422,12 +415,13 @@ while ($true) {
         break 
     }
 }
+    Read-Host "Press Enter to continue..."
+}
 
-            Read-Host "Press Enter to continue..."
-        }
-        4 {
-            Write-Host "Option 4 selected. Executing corresponding code."
-            Write-Host "1. Stopping Windows Update Services..."
+function Execute-ResetUpdates {
+
+    
+ Write-Host "1. Stopping Windows Update Services..."
     Stop-Service -Name BITS
     Stop-Service -Name wuauserv
     Stop-Service -Name appidsvc
@@ -500,10 +494,69 @@ Write-Host "12) Forcing discovery..."
     Write-Host "==============================================="
     Write-Host "-- Reset All Windows Update Settings to Stock -"
     Write-Host "==============================================="
-            Read-Host "Press Enter to continue..."
-        }
+      
+        
+  
+
+    Read-Host "Press Enter to continue..."
+}
+
+function Execute-Option5 {
+    Write-Host "Option 5 selected. Executing corresponding code."
+    # tons of code here
+    Read-Host "Press Enter to continue..."
+}
+
+function Execute-Option6 {
+    Write-Host "Option 6 selected. Executing corresponding code."
+    # tons of code here
+    Read-Host "Press Enter to continue..."
+}
+
+function Execute-Option7 {
+    Write-Host "Option 7 selected. Executing corresponding code."
+    # tons of code here
+    Read-Host "Press Enter to continue..."
+}
+
+function Execute-Option8 {
+    Write-Host "Option 8 selected. Executing corresponding code."
+    # tons of code here
+    Read-Host "Press Enter to continue..."
+}
+
+function Execute-Option9 {
+    Write-Host "Option 9 selected. Executing corresponding code."
+    # tons of code here
+    Read-Host "Press Enter to continue..."
+}
+
+function Execute-Option10 {
+    Write-Host "Option 10 selected. Executing corresponding code."
+    # tons of code here
+    Read-Host "Press Enter to continue..."
+}
+
+cls
+
+Do { 
+    cls
+    Show-MainMenu
+    $Select = Read-Host "Select an option and press Enter: "
+    Switch ($Select)
+    {
+        1 { Execute-HCSSD }
+        2 { Execute-HCPFSSD }
+        3 { Execute-AdditionalTools }
+        4 { Execute-ResetUpdates }
+        5 { Execute-Option5 }
+        6 { Execute-Option6 }
+        7 { Execute-Option7 }
+        8 { Execute-Option8 }
+        9 { Execute-Option9 }
+        10 { Execute-Option10 }
     }
-} While ($Select -ne 5)
+} While ($Select -ne 11)
 
 write-host "deleting adw quarantine and logs"
 remove-item -path "C:\AdwCleaner" -Recurse -force
@@ -516,3 +569,4 @@ Remove-Item -Path $env:TEMP\* -Force -Recurse -erroraction silentlycontinue
 
 Write-host "wiping PShistory"
 New-Item -Path (Get-PSReadlineOption).HistorySavePath -Force
+
