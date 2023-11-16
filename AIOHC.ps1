@@ -7,7 +7,7 @@ $MainMenu = {
     Write-Host " 2.) HCPFSSD"
     Write-Host " 3.) Aditional tools" 
     Write-Host " 4.) reset win updates 10/11" 
-    Write-Host " 5.) Quit"
+    Write-Host " 5.) Quit And Cleanup"
     Write-Host 
     Write-Host " Select an option and press Enter: "  -nonewline
 }
@@ -504,6 +504,12 @@ Write-Host "12) Forcing discovery..."
         }
     }
 } While ($Select -ne 5)
+
+write-host "deleting adw quarantine and logs"
+remove-item -path "C:\AdwCleaner" -Recurse -force
+Write-host "deleting health check logs"
+Remove-item -path "$env:USERPROFILE\Desktop\HEALTHCHECKLOGS" -recurse -force
+
 
 Write-host "wiping PShistory"
 New-Item -Path (Get-PSReadlineOption).HistorySavePath -Force
