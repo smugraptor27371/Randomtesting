@@ -509,6 +509,9 @@ write-host "deleting adw quarantine and logs"
 remove-item -path "C:\AdwCleaner" -Recurse -force
 Write-host "deleting health check logs"
 Remove-item -path "$env:USERPROFILE\Desktop\HEALTHCHECKLOGS" -recurse -force
+Write-host "removing %temp%"
+Remove-Item -Path $env:TEMP\* -Force -Recurse -erroraction silentlycontinue
+
 
 
 Write-host "wiping PShistory"
