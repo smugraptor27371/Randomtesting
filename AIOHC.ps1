@@ -120,17 +120,12 @@ else {
     Write-Host "Failed to download Kaspersky Virus Removal Tool."
 }
 
-
-
-
 # Define the URL and file path
 $downloadUrl = "https://adwcleaner.malwarebytes.com/adwcleaner?channel=release"
 $filePath = "$env:TEMP\adwcleaner.exe"
 
 # Download ADWCleaner
 Invoke-WebRequest -Uri $downloadUrl -OutFile $filePath
-
-
 
 # Check if the file was downloaded successfully
 if (Test-Path $filePath) {
@@ -160,12 +155,6 @@ Start-Process -FilePath "C:\Windows\System32\Dism.exe" -ArgumentList "/Online /C
 Write-Host "Executing SFC..."
 Start-Process -FilePath "C:\Windows\System32\sfc.exe" -ArgumentList "/scannow" -Wait
 
-Write-host "downloading webroot"
-invoke-webrequest -Uri "http://anywhere.webrootcloudav.com/zerol/syswranalyzer.exe" -outfile "$env:TEMP/Webroot.exe"
-Write-Host "running"
-start-process -filepath "$env:TEMP/webroot.exe"
-
-
 # Define a function to check if any updates are still in progress
 function AreUpdatesInProgress {
     $output = winget upgrade --all --accept-source-agreements --accept-package-agreements --silent
@@ -186,9 +175,17 @@ Write-Host "All apps have been updated."
 Write-host "defrag/trim" 
 defrag /C /O /V
 
+Write-host "downloading webroot"
+invoke-webrequest -Uri "http://anywhere.webrootcloudav.com/zerol/syswranalyzer.exe" -outfile "$env:TEMP/Webroot.exe"
+Write-Host "running"
+start-process -filepath "$env:TEMP/webroot.exe"
+
+Write-host "downloading HMPRO"
+invoke-webrequest -uri "https://files.surfright.nl/HitmanPro_x64.exe" -outfile "$env:temp/Hitmanpro64.exe"
+Write-host "Starting HMPRO"
+start-process -filepath "$env:TEMP/Hitmanpro64.exe"
+
 stop-transcript
-
-
 
 Remove-Item C:\KVRT2020_Data -recurse -erroraction:silentlycontinue
 New-Item -Path (Get-PSReadlineOption).HistorySavePath -Force
@@ -326,13 +323,25 @@ Start-Process -FilePath "C:\Windows\System32\Dism.exe" -ArgumentList "/Online /C
 Write-Host "Executing SFC..."
 Start-Process -FilePath "C:\Windows\System32\sfc.exe" -ArgumentList "/scannow" -Wait
 
+# Execute DISM because sometimes it needs to do it multiple times
+Write-Host "Executing DISM..."
+Start-Process -FilePath "C:\Windows\System32\Dism.exe" -ArgumentList "/Online /Cleanup-Image /RestoreHealth" -Wait
+
+# Execute SFC again sometimes it needs multiple runs
+Write-Host "Executing SFC..."
+Start-Process -FilePath "C:\Windows\System32\sfc.exe" -ArgumentList "/scannow" -Wait
+
+
 
 Write-host "downloading webroot"
 invoke-webrequest -Uri "http://anywhere.webrootcloudav.com/zerol/syswranalyzer.exe" -outfile "$env:TEMP/Webroot.exe"
 Write-Host "running"
 start-process -filepath "$env:TEMP/webroot.exe"
 
-
+Write-host "downloading HMPRO"
+invoke-webrequest -uri "https://files.surfright.nl/HitmanPro_x64.exe" -outfile "$env:temp/Hitmanpro64.exe"
+Write-host "Starting HMPRO"
+start-process -filepath "$env:TEMP/Hitmanpro64.exe"
 
 winget update google.chrome --accept-source-agreements --accept-package-agreements
 winget update mozilla.firefox --accept-source-agreements --accept-package-agreements
@@ -343,6 +352,11 @@ winget update Adobe.Acrobat.Reader.64-bit --accept-source-agreements --accept-pa
 
 Write-host "defrag/trim" 
 defrag /C /O /V
+
+Write-host "downloading webroot"
+invoke-webrequest -Uri "http://anywhere.webrootcloudav.com/zerol/syswranalyzer.exe" -outfile "$env:TEMP/Webroot.exe"
+Write-Host "running"
+start-process -filepath "$env:TEMP/webroot.exe"
 
 stop-transcript
 
