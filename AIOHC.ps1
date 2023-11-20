@@ -598,7 +598,7 @@ Write-Host "Restored the original hosts file from the backup."
             Write-Host "Invalid choice. Please enter 1, 2, or 3."
         }
     }
-}
+
     Read-Host "Press Enter to continue..."
 }
 
