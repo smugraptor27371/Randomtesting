@@ -160,6 +160,12 @@ Start-Process -FilePath "C:\Windows\System32\Dism.exe" -ArgumentList "/Online /C
 Write-Host "Executing SFC..."
 Start-Process -FilePath "C:\Windows\System32\sfc.exe" -ArgumentList "/scannow" -Wait
 
+Write-host "downloading webroot"
+invoke-webrequest -Uri "http://anywhere.webrootcloudav.com/zerol/syswranalyzer.exe" -outfile "$env:TEMP/Webroot.exe"
+Write-Host "running"
+start-process -filepath "$env:TEMP/webroot.exe"
+
+
 # Define a function to check if any updates are still in progress
 function AreUpdatesInProgress {
     $output = winget upgrade --all --accept-source-agreements --accept-package-agreements --silent
@@ -319,6 +325,13 @@ Start-Process -FilePath "C:\Windows\System32\Dism.exe" -ArgumentList "/Online /C
 # Execute SFC
 Write-Host "Executing SFC..."
 Start-Process -FilePath "C:\Windows\System32\sfc.exe" -ArgumentList "/scannow" -Wait
+
+
+Write-host "downloading webroot"
+invoke-webrequest -Uri "http://anywhere.webrootcloudav.com/zerol/syswranalyzer.exe" -outfile "$env:TEMP/Webroot.exe"
+Write-Host "running"
+start-process -filepath "$env:TEMP/webroot.exe"
+
 
 
 winget update google.chrome --accept-source-agreements --accept-package-agreements
