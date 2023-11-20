@@ -15,7 +15,7 @@ function Show-MainMenu {
     Write-Host "10.) Option 10"
     Write-Host "11.) Quit And Cleanup"
     Write-Host 
-    Write-Host " Select an option and press Enter: "  -nonewline
+   
 }
 
 function Execute-HCSSD {
