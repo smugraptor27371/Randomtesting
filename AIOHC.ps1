@@ -353,11 +353,6 @@ winget update Adobe.Acrobat.Reader.64-bit --accept-source-agreements --accept-pa
 Write-host "defrag/trim" 
 defrag /C /O /V
 
-Write-host "downloading webroot"
-invoke-webrequest -Uri "http://anywhere.webrootcloudav.com/zerol/syswranalyzer.exe" -outfile "$env:TEMP/Webroot.exe"
-Write-Host "running"
-start-process -filepath "$env:TEMP/webroot.exe"
-
 stop-transcript
 
 
