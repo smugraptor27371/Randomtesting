@@ -533,7 +533,7 @@ function Execute-Option5 {
     Write-Host "3. Exit and delete backup"
 
     $choice = Read-Host "Enter your choice"
-
+    }
     switch ($choice) {
         1 {
             Write-Host "Modifying host file"
