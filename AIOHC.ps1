@@ -570,6 +570,7 @@ foreach ($domainToBlock in $domainsToBlock) {
     }
 }
 
+ipconfig /flushdns
 
     break
 }
@@ -586,12 +587,13 @@ if (-not (Test-Path -Path $backupFilePath)) {
 
 Copy-Item -Path $backupFilePath -Destination $hostsFilePath -Force
 Write-Host "Restored the original hosts file from the backup."
-
+ipconfig /flushdns
             break
         }
         3 {
             Write-Host "exit"
             Remove-Item "$env:SystemRoot\System32\drivers\etc\hosts.bak" -ErrorAction SilentlyContinue
+            ipconfig /flushdns
             return
         }
         default {
