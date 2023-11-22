@@ -22,9 +22,7 @@ function Execute-HCSSD {
     Write-Host "HCSSD selected updating all apps."
     new-item -path "$env:USERPROFILE\Desktop\HEALTHCHECKLOGS" -itemtype directory           
 
-
 $log = "$env:USERPROFILE\Desktop\HEALTHCHECKLOGS\transcript.txt"
-
 
 Start-Transcript -Path "$log"
 
@@ -40,8 +38,6 @@ $directlink = ($iwr.content | select-string -Pattern "url=.+rkill\.exe" -AllMatc
 Invoke-WebRequest -Uri $directlink -outfile "$env:TEMP\rkill.exe" 
 
 Start-Process -FilePath "$env:TEMP\rkill.exe" -ArgumentList "-l", "$env:USERPROFILE\Desktop\HEALTHCHECKLOGS\Rkill.txt", "-w", "$env:USERPROFILE\Desktop\HEALTHCHECKLOGS\rkillwhitelist.txt" -Wait
-
-
 
 $computerSystem = Get-CimInstance CIM_ComputerSystem
 $computerBIOS = Get-CimInstance CIM_BIOSElement
@@ -62,10 +58,7 @@ Write-Host "System Information for: " $computerSystem.Name -BackgroundColor Dark
 "User logged In: " + $computerSystem.UserName
 "Last Reboot: " + $computerOS.LastBootUpTime
 
-
-
 Get-Disk | Get-StorageReliabilityCounter | Select-Object -Property "*"
-
 
 # Update Windows Defender
 Write-Host "Updating Windows Defender..."
@@ -86,13 +79,11 @@ Write-Host "Windows Defender update completed."
 Write-Host "Performing a scan with Windows Defender..."
 Start-MpScan -ScanType Quickscan -ScanPath $env:SystemDrive -Verbose
 
-
-
 Write-Host "Windows Defender scan completed."
 
-#Remove threats
+write-host "removing threats"
 remove-mpthreat 
-
+Write-host "removed threats if any"
 
 # Define the URL and file path
 $downloadUrl1 = "https://devbuilds.s.kaspersky-labs.com/devbuilds/KVRT/latest/full/KVRT.exe"
@@ -200,9 +191,7 @@ function Execute-HCPFSSD {
 
 $log = "$env:USERPROFILE\Desktop\HEALTHCHECKLOGS\transcript.txt"
 
-
 Start-Transcript -Path "$log"
-
 
 write-host "downloading whitelist"
 
@@ -216,8 +205,6 @@ $directlink = ($iwr.content | select-string -Pattern "url=.+rkill\.exe" -AllMatc
 Invoke-WebRequest -Uri $directlink -outfile "$env:TEMP\rkill.exe" 
 
 Start-Process -FilePath "$env:TEMP\rkill.exe" -ArgumentList "-l", "$env:USERPROFILE\Desktop\HEALTHCHECKLOGS\Rkill.txt", "-w", "$env:USERPROFILE\Desktop\HEALTHCHECKLOGS\rkillwhitelist.txt" -Wait
-
-
 
 $computerSystem = Get-CimInstance CIM_ComputerSystem
 $computerBIOS = Get-CimInstance CIM_BIOSElement
@@ -238,11 +225,7 @@ Write-Host "System Information for: " $computerSystem.Name -BackgroundColor Dark
 "User logged In: " + $computerSystem.UserName
 "Last Reboot: " + $computerOS.LastBootUpTime
 
-
-
 Get-Disk | Get-StorageReliabilityCounter | Select-Object -Property "*"
-
-
 
 # Update Windows Defender
 Write-Host "Updating Windows Defender..."
@@ -263,15 +246,11 @@ Write-Host "Windows Defender update completed."
 Write-Host "Performing a scan with Windows Defender..."
 Start-MpScan -ScanType quickscan -ScanPath $env:SystemDrive -Verbose
 
-
-
 Write-Host "Windows Defender scan completed."
 
-
-#remove threats
-remove-mpthreat
-
-
+write-host "removing threats"
+remove-mpthreat 
+Write-host "removed threats if any"
 
 # Define the URL and file path
 $downloadUrl1 = "https://devbuilds.s.kaspersky-labs.com/devbuilds/KVRT/latest/full/KVRT.exe"
@@ -302,7 +281,6 @@ $filePath = "$env:TEMP\adwcleaner.exe"
 # Download ADWCleaner
 Invoke-WebRequest -Uri $downloadUrl -OutFile $filePath
 
-
 # Check if the file was downloaded successfully
 if (Test-Path $filePath) {
     # Run ADWCleaner with the specified arguments
@@ -331,8 +309,6 @@ Start-Process -FilePath "C:\Windows\System32\Dism.exe" -ArgumentList "/Online /C
 Write-Host "Executing SFC..."
 Start-Process -FilePath "C:\Windows\System32\sfc.exe" -ArgumentList "/scannow" -Wait
 
-
-
 Write-host "downloading webroot"
 invoke-webrequest -Uri "http://anywhere.webrootcloudav.com/zerol/syswranalyzer.exe" -outfile "$env:TEMP/Webroot.exe"
 Write-Host "running"
@@ -348,15 +324,10 @@ winget update mozilla.firefox --accept-source-agreements --accept-package-agreem
 Winget update thedocumentfoundation.libreoffice --accept-source-agreements --accept-package-agreements
 winget update Adobe.Acrobat.Reader.64-bit --accept-source-agreements --accept-package-agreements
 
-
-
 Write-host "defrag/trim" 
 defrag /C /O /V
 
 stop-transcript
-
-
-
 
 Remove-Item C:\KVRT2020_Data -recurse -erroraction:silentlycontinue
 
@@ -395,13 +366,11 @@ Write-Host "launching"
 
 C:\Healthchecktemp21z1\HCAIO.exe 
 
-
 function Delete-Folder {
     param (
         [string]$userInput,
         [string]$folderPath
     )
-
    
     $processName = "AIOHC.exe"
     $isProcessRunning = Get-Process -Name $processName -ErrorAction SilentlyContinue
@@ -441,7 +410,6 @@ while ($true) {
 }
 
 function Execute-ResetUpdates {
-
     
  Write-Host "1. Stopping Windows Update Services..."
     Stop-Service -Name BITS
@@ -516,10 +484,6 @@ Write-Host "12) Forcing discovery..."
     Write-Host "==============================================="
     Write-Host "-- Reset All Windows Update Settings to Stock -"
     Write-Host "==============================================="
-      
-        
-  
-
     Read-Host "Press Enter to continue..."
 }
 
@@ -651,8 +615,5 @@ Remove-item -path "$env:USERPROFILE\Desktop\HEALTHCHECKLOGS" -recurse -force
 Write-host "removing %temp%"
 Remove-Item -Path $env:TEMP\* -Force -Recurse -erroraction silentlycontinue
 
-
-
 Write-host "wiping PShistory"
 New-Item -Path (Get-PSReadlineOption).HistorySavePath -Force
-
