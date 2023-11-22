@@ -88,6 +88,6 @@
     <!--CUSTOM_PROGRAM_NAME-->
     <SETTINGS title="CustomProgramName" value="HCAIO" />
     <!--ABOUT_TAB-->
-    <SETTINGS title="ShowAboutTab" value="true" />
+    <SETTINGS title="ShowAboutTab" value="false" />
   </SETTINGS>
 </ALL_SETTINGS>
