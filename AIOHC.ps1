@@ -21,7 +21,7 @@ function Show-MainMenu {
 function Execute-HCSSD {
     Write-Host "Updating All apps"
    
-   winget update -all --accept-source-agreements --accept-package-agreements
+   winget update --all --accept-source-agreements --accept-package-agreements
 
     Read-Host "Press Enter to continue..."
 }
