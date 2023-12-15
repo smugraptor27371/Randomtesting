@@ -6,7 +6,7 @@ function Show-MainMenu {
     Write-Host " 1.) Update All apps (winget)" 
     Write-Host " 2.) HCPFSSD"
     Write-Host " 3.) Additional tools" 
-    Write-Host " 4.) Reset Win Updates older version" 
+    Write-Host " 4.) Reset Win Updates old version" 
     Write-Host " 5.) Nukedesk"
     Write-Host " 6.) Option 6"
     Write-Host " 7.) Option 7"
@@ -397,69 +397,7 @@ function Execute-Option5 {
 
 function Execute-Option6 {
     Write-Host "Option 6 selected. Executing corresponding code."
-    while ($true) {
-    Write-Host "Select an option:"
-    Write-Host "1. NukeDesk"
-    Write-Host "2. Restore Hostfile"
-    Write-Host "3. Exit and delete backup"
 
-    $choice = Read-Host "Enter your choice"
-
-    switch ($choice) {
-        1 {
-            Write-Host "Modifying host file"
-          
-            $domainsToBlock = @("anydesk.com", "net.anydesk.com", "www.anydesk.com", "https://anydesk.com/en-gb", "https://anydesk.com")
-            $blockIPAddress = "127.0.0.1"
-            $hostsFilePath = "$env:SystemRoot\System32\drivers\etc\hosts"
-            $backupFilePath = "$env:SystemRoot\System32\drivers\etc\hosts.bak"
-
-            if (-not (Test-Path -Path $hostsFilePath)) {
-                Write-Host "Hosts file not found."
-                Exit
-            }
-
-            Copy-Item -Path $hostsFilePath -Destination $backupFilePath -Force
-
-            foreach ($domainToBlock in $domainsToBlock) {
-                if (-not (Get-Content $hostsFilePath | Select-String -Pattern $domainToBlock)) {
-                    Add-Content -Path $hostsFilePath -Value "$blockIPAddress`t$domainToBlock"
-                    Add-Content -Path $hostsFilePath -Value "$blockIPAddress`t*.$domainToBlock"
-                    Write-Host "Blocked $domainToBlock and its subdomains."
-                } else {
-                    Write-Host "$domainToBlock is already blocked."
-                }
-            }
-
-            ipconfig /flushdns
-            break
-        }
-        2 {
-            Write-Host "Reverting host file"
-            
-            $hostsFilePath = "$env:SystemRoot\System32\drivers\etc\hosts"
-            $backupFilePath = "$env:SystemRoot\System32\drivers\etc\hosts.bak"
-
-            if (-not (Test-Path -Path $backupFilePath)) {
-                Write-Host "Backup file not found. Nothing to restore."
-                break
-            }
-
-            Copy-Item -Path $backupFilePath -Destination $hostsFilePath -Force
-            Write-Host "Restored the original hosts file from the backup."
-            ipconfig /flushdns
-            break
-        }
-        3 {
-            Write-Host "Exit and delete backup"
-            Remove-Item "$env:SystemRoot\System32\drivers\etc\hosts.bak" -ErrorAction SilentlyContinue
-            ipconfig /flushdns
-            return
-        }
-        default {
-            Write-Host "Invalid choice. Please enter 1, 2, or 3."
-        }
-    }
     Read-Host "Press Enter to continue..."
 }
 
