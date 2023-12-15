@@ -15,21 +15,17 @@ function Show-MainMenu {
     Write-Host "10.) Option 10"
     Write-Host "11.) Quit And Cleanup"
     Write-Host 
-   
 }
 
 function Execute-HCSSD {
     Write-Host "Updating All apps"
-   
    winget update --all --accept-source-agreements --accept-package-agreements
-
     Read-Host "Press Enter to continue..."
 }
 
 function Execute-HCPFSSD {
     Write-Host "HCPFSSD Selected only updating specific apps."
    new-item -path "$env:USERPROFILE\Desktop\HEALTHCHECKLOGS" -itemtype directory           
-
 
 $log = "$env:USERPROFILE\Desktop\HEALTHCHECKLOGS\transcript.txt"
 
