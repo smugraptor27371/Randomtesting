@@ -3,7 +3,7 @@ function Show-MainMenu {
     Write-Host " *         Main Menu       *" 
     Write-Host " ***************************" 
     Write-Host 
-    Write-Host " 1.) HCSSD" 
+    Write-Host " 1.) Update All apps (winget)" 
     Write-Host " 2.) HCPFSSD"
     Write-Host " 3.) Additional tools" 
     Write-Host " 4.) Reset Win Updates 10/11" 
@@ -19,167 +19,9 @@ function Show-MainMenu {
 }
 
 function Execute-HCSSD {
-    Write-Host "HCSSD selected updating all apps."
-    new-item -path "$env:USERPROFILE\Desktop\HEALTHCHECKLOGS" -itemtype directory           
-
-$log = "$env:USERPROFILE\Desktop\HEALTHCHECKLOGS\transcript.txt"
-
-Start-Transcript -Path "$log"
-
-write-host "downloading whitelist"
-
-Invoke-WebRequest -Uri https://raw.githubusercontent.com/smugraptor27371/Randomtesting/main/rkillwhitelist.txt -outfile "$env:USERPROFILE\Desktop\HEALTHCHECKLOGS\rkillwhitelist.txt"
-
-Write-host "downloading Preperation"
-
-$iwr = Invoke-WebRequest -Uri "https://www.bleepingcomputer.com/download/rkill/dl/10/"
-$directlink = ($iwr.content | select-string -Pattern "url=.+rkill\.exe" -AllMatches).matches.value -replace "url=",""
-
-Invoke-WebRequest -Uri $directlink -outfile "$env:TEMP\rkill.exe" 
-
-Start-Process -FilePath "$env:TEMP\rkill.exe" -ArgumentList "-l", "$env:USERPROFILE\Desktop\HEALTHCHECKLOGS\Rkill.txt", "-w", "$env:USERPROFILE\Desktop\HEALTHCHECKLOGS\rkillwhitelist.txt" -Wait
-
-$computerSystem = Get-CimInstance CIM_ComputerSystem
-$computerBIOS = Get-CimInstance CIM_BIOSElement
-$computerOS = Get-CimInstance CIM_OperatingSystem
-$computerCPU = Get-CimInstance CIM_Processor
-$computerHDD = Get-CimInstance Win32_LogicalDisk -Filter "DeviceID = 'C:'"
-Clear-Host
-
-Write-Host "System Information for: " $computerSystem.Name -BackgroundColor DarkCyan
-"Manufacturer: " + $computerSystem.Manufacturer
-"Model: " + $computerSystem.Model
-"Serial Number: " + $computerBIOS.SerialNumber
-"CPU: " + $computerCPU.Name
-"HDD Capacity: "  + "{0:N2}" -f ($computerHDD.Size/1GB) + "GB"
-"HDD Space: " + "{0:P2}" -f ($computerHDD.FreeSpace/$computerHDD.Size) + " Free (" + "{0:N2}" -f ($computerHDD.FreeSpace/1GB) + "GB)"
-"RAM: " + "{0:N2}" -f ($computerSystem.TotalPhysicalMemory/1GB) + "GB"
-"Operating System: " + $computerOS.caption + ", Service Pack: " + $computerOS.ServicePackMajorVersion
-"User logged In: " + $computerSystem.UserName
-"Last Reboot: " + $computerOS.LastBootUpTime
-
-Get-Disk | Get-StorageReliabilityCounter | Select-Object -Property "*"
-
-# Update Windows Defender
-Write-Host "Updating Windows Defender..."
-Update-MpSignature -Verbose
-
-# Wait for the update to finish
-Write-Host "Waiting for Windows Defender update to complete..."
-$UpdateInProgress = $true
-
-while ($UpdateInProgress) {
-    $UpdateInProgress = (Get-MpComputerStatus).EngineRefreshRequired
-    Start-Sleep -Seconds 5
-}
-
-Write-Host "Windows Defender update completed."
-
-# Perform a scan with Windows Defender
-Write-Host "Performing a scan with Windows Defender..."
-Start-MpScan -ScanType Quickscan -ScanPath $env:SystemDrive -Verbose
-
-Write-Host "Windows Defender scan completed."
-
-write-host "removing threats"
-remove-mpthreat 
-Write-host "removed threats if any"
-
-# Define the URL and file path
-$downloadUrl1 = "https://devbuilds.s.kaspersky-labs.com/devbuilds/KVRT/latest/full/KVRT.exe"
-$filePath1 = "$env:TEMP\KVRT.exe"
-
-# Download Kaspersky Virus Removal Tool
-Invoke-WebRequest -Uri $downloadUrl1 -OutFile $filePath1
-
-# Wait for the download to complete (adjust the sleep time as needed)
-Start-Sleep -Seconds 10
-
-# Check if the file was downloaded successfully
-if (Test-Path $filePath1) {
-    # Define the command-line arguments
-    $arguments1 = "-silent -accepteula -processlevel 3"
-    
-    # Run Kaspersky Virus Removal Tool with the specified arguments
-    Start-Process -FilePath $filePath1 -ArgumentList $arguments1 -redirectstandardoutput "$env:USERPROFILE\Desktop\HEALTHCHECKLOGS\KVRT.txt" -wait
- 
-    
-    # Clean up the downloaded file after the execution
-    Remove-Item $filePath1 -Force -erroraction silentlycontinue
-}
-else {
-    Write-Host "Failed to download Kaspersky Virus Removal Tool."
-}
-
-# Define the URL and file path
-$downloadUrl = "https://adwcleaner.malwarebytes.com/adwcleaner?channel=release"
-$filePath = "$env:TEMP\adwcleaner.exe"
-
-# Download ADWCleaner
-Invoke-WebRequest -Uri $downloadUrl -OutFile $filePath
-
-# Check if the file was downloaded successfully
-if (Test-Path $filePath) {
-    # Run ADWCleaner with the specified arguments
-    Start-Process -FilePath $filePath -ArgumentList "/eula", "/clean", "/noreboot"  -redirectstandardoutput  "$env:USERPROFILE\Desktop\HEALTHCHECKLOGS\ADW.txt" -wait
-    # Clean up the downloaded file after the execution
-    Remove-Item $filePath -Force -erroraction silentlycontinue
-    Write-Host "adwclean done"
-}
-else {
-    Write-Host "Failed to download ADWCleaner."
-}
-
-# Execute DISM
-Write-Host "Executing DISM..."
-Start-Process -FilePath "C:\Windows\System32\Dism.exe" -ArgumentList "/Online /Cleanup-Image /RestoreHealth" -Wait
-
-# Execute SFC
-Write-Host "Executing SFC..."
-Start-Process -FilePath "C:\Windows\System32\sfc.exe" -ArgumentList "/scannow" -Wait
-
-# Execute DISM because sometimes it needs to do it multiple times
-Write-Host "Executing DISM..."
-Start-Process -FilePath "C:\Windows\System32\Dism.exe" -ArgumentList "/Online /Cleanup-Image /RestoreHealth" -Wait
-
-# Execute SFC again sometimes it needs multiple runs
-Write-Host "Executing SFC..."
-Start-Process -FilePath "C:\Windows\System32\sfc.exe" -ArgumentList "/scannow" -Wait
-
-# Define a function to check if any updates are still in progress
-function AreUpdatesInProgress {
-    $output = winget upgrade --all --accept-source-agreements --accept-package-agreements --silent
-    return $output.Contains("Running") -or $output.Contains("Pending")
-}
-
-# Run the initial upgrade command
-winget upgrade --all --accept-source-agreements --accept-package-agreements
-
-# Check for updates in a loop until there are no more updates in progress
-while (AreUpdatesInProgress) {
-    Write-Host "Waiting for updates to complete..."
-    Start-Sleep -Seconds 10 # Adjust the sleep interval if needed
-}
-
-Write-Host "All apps have been updated."
-
-Write-host "defrag/trim" 
-defrag /C /O /V
-
-Write-host "downloading webroot"
-invoke-webrequest -Uri "http://anywhere.webrootcloudav.com/zerol/syswranalyzer.exe" -outfile "$env:TEMP/Webroot.exe"
-Write-Host "running"
-start-process -filepath "$env:TEMP/webroot.exe"
-
-Write-host "downloading HMPRO"
-invoke-webrequest -uri "https://files.surfright.nl/HitmanPro_x64.exe" -outfile "$env:temp/Hitmanpro64.exe"
-Write-host "Starting HMPRO"
-start-process -filepath "$env:TEMP/Hitmanpro64.exe"
-
-stop-transcript
-
-Remove-Item C:\KVRT2020_Data -recurse -erroraction:silentlycontinue
-New-Item -Path (Get-PSReadlineOption).HistorySavePath -Force
+    Write-Host "Updating All apps"
+   
+   winget update -all --accept-source-agreements --accept-package-agreements
 
     Read-Host "Press Enter to continue..."
 }
