@@ -87,7 +87,7 @@ Start-MpScan -ScanType quickscan -ScanPath $env:SystemDrive -Verbose
 Write-Host "Windows Defender scan completed."
 
 write-host "removing threats"
-remove-mpthreat 
+remove-mpthreat -verbose
 Write-host "removed threats if any"
 
 # Define the URL and file path
