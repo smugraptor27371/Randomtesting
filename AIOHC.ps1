@@ -152,6 +152,13 @@ invoke-webrequest -Uri "http://anywhere.webrootcloudav.com/zerol/syswranalyzer.e
 Write-Host "running"
 start-process -filepath "$env:TEMP/webroot.exe"
 
+write-host "downloading wiztree" 
+$wiztreeurl = "https://www.diskanalyzer.com/files/wiztree_4_16_portable.zip"
+$wiztreeloc = "$env:TEMP\wiztree.zip"  
+Invoke-WebRequest -Uri $wiztreeurl -outfile $wiztreeloc
+Expand-archive -path $wiztreeloc -destinationpath $env:TEMP\wiztreeunzipped
+Start-Process -FilePath $env:TEMP\wiztreeunzipped\Wiztree64.exe
+
 Write-host "downloading HMPRO"
 invoke-webrequest -uri "https://files.surfright.nl/HitmanPro_x64.exe" -outfile "$env:temp/Hitmanpro64.exe"
 Write-host "Starting HMPRO"
