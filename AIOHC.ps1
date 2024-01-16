@@ -164,6 +164,8 @@ invoke-webrequest -uri "https://files.surfright.nl/HitmanPro_x64.exe" -outfile "
 Write-host "Starting HMPRO"
 start-process -filepath "$env:TEMP/Hitmanpro64.exe"
 
+cleanmgr
+
 winget update google.chrome --accept-source-agreements --accept-package-agreements
 winget update mozilla.firefox --accept-source-agreements --accept-package-agreements
 Winget update thedocumentfoundation.libreoffice --accept-source-agreements --accept-package-agreements
