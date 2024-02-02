@@ -31,6 +31,12 @@ $log = "$env:USERPROFILE\Desktop\HEALTHCHECKLOGS\transcript.txt"
 
 Start-Transcript -Path "$log"
 
+#diskhealth
+write-host "Downloading disk health Checker"
+invoke-webrequest -uri https://www.harddisksentinel.com/hdsentinel_pro_portable.zip -outfile "$env:TEMP\diskhealth.zip"
+Expand-Archive -path "$env:TEMP\diskhealth.zip" -destinationpath "$Env:TEMP\diskhealth"
+Start-Process -FilePath "$env:TEMP\diskhealth\HDSentinel.exe"
+
 write-host "downloading whitelist"
 
 Invoke-WebRequest -Uri https://raw.githubusercontent.com/smugraptor27371/Randomtesting/main/rkillwhitelist.txt -outfile "$env:USERPROFILE\Desktop\HEALTHCHECKLOGS\rkillwhitelist.txt"
@@ -455,6 +461,8 @@ Do {
     }
 } While ($Select -ne 11)
 
+Write-host "Stopping HDsentinel"
+Stop-Process -name hdsentinel
 write-host "deleting adw quarantine and logs"
 remove-item -path "C:\AdwCleaner" -Recurse -force
 Write-host "deleting health check logs"
