@@ -37,6 +37,12 @@ invoke-webrequest -uri https://www.harddisksentinel.com/hdsentinel_pro_portable.
 Expand-Archive -path "$env:TEMP\diskhealth.zip" -destinationpath "$Env:TEMP\diskhealth"
 Start-Process -FilePath "$env:TEMP\diskhealth\HDSentinel.exe"
 
+#hwmonitor
+write-host "Downloading HWmonitor"
+invoke-webrequest -uri https://download.cpuid.com/hwmonitor/hwmonitor_1.52.zip -outfile "$env:TEMP\hwmon.zip"
+Expand-Archive -path "$env:TEMP\hwmon.zip" -destinationpath "$Env:TEMP\hwmon"
+Start-Process -FilePath "$env:TEMP\hwmon\HWMonitor_x64.exe"
+
 write-host "downloading whitelist"
 
 Invoke-WebRequest -Uri https://raw.githubusercontent.com/smugraptor27371/Randomtesting/main/rkillwhitelist.txt -outfile "$env:USERPROFILE\Desktop\HEALTHCHECKLOGS\rkillwhitelist.txt"
