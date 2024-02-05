@@ -49,8 +49,8 @@ Invoke-WebRequest -Uri https://raw.githubusercontent.com/smugraptor27371/Randomt
 
 
 $tempPath = "$env:TEMP"
-Add-content -path "$env:USERPROFILE\Desktop\HEALTHCHECKLOGS\Rkill.txt" -value "$tempPath\hwmon\HWMonitor_x64.exe"
-Add-content -path "$env:USERPROFILE\Desktop\HEALTHCHECKLOGS\Rkill.txt" -value "$tempPath\diskhealth\HDSentinel.exe"
+Add-content -path "$env:USERPROFILE\Desktop\HEALTHCHECKLOGS\Rkillwhitelist.txt" -value "$tempPath\hwmon\HWMonitor_x64.exe"
+Add-content -path "$env:USERPROFILE\Desktop\HEALTHCHECKLOGS\Rkillwhitelist.txt" -value "$tempPath\diskhealth\HDSentinel.exe"
 
 Write-host "downloading Preperation"
 
