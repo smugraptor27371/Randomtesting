@@ -47,6 +47,11 @@ write-host "downloading whitelist"
 
 Invoke-WebRequest -Uri https://raw.githubusercontent.com/smugraptor27371/Randomtesting/main/rkillwhitelist.txt -outfile "$env:USERPROFILE\Desktop\HEALTHCHECKLOGS\rkillwhitelist.txt"
 
+
+$tempPath = "$env:TEMP"
+Add-content -path "$env:USERPROFILE\Desktop\HEALTHCHECKLOGS\Rkill.txt" -value "$tempPath\hwmon\HWMonitor_x64.exe"
+Add-content -path "$env:USERPROFILE\Desktop\HEALTHCHECKLOGS\Rkill.txt" -value "$tempPath\diskhealth\HDSentinel.exe"
+
 Write-host "downloading Preperation"
 
 $iwr = Invoke-WebRequest -Uri "https://www.bleepingcomputer.com/download/rkill/dl/10/"
