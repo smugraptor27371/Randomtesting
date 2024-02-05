@@ -2,3 +2,4 @@
 "C:\Program Files\TeamViewer\TeamViewer_Desktop.exe"
 "C:\Program Files (X86)\TeamViewer\TeamViewer.exe"
 "C:\Program Files (X86)\TeamViewer\TeamViewer_Desktop.exe"
+"%temp%\hwmon\
