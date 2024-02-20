@@ -8,7 +8,7 @@ function Show-MainMenu {
     Write-Host " 3.) Additional tools" 
     Write-Host " 4.) Reset Win Updates old version" 
     Write-Host " 5.) Nukedesk"
-    Write-Host " 6.) Option 6"
+    Write-Host " 6.) Registry changes"
     Write-Host " 7.) Option 7"
     Write-Host " 8.) Option 8"
     Write-Host " 9.) Option 9"
@@ -423,6 +423,100 @@ function Execute-Option5 {
 
 function Execute-Option6 {
     Write-Host "Option 6 selected. Executing corresponding code."
+ while ($true) {
+    Write-Host "Select an option:"
+    Write-Host "1. All reg changes"
+    Write-Host "2. Telemetry changes"
+    Write-Host "3. Search suggestions and cortana changes"
+    Write-Host "4. Work in progress"
+    Write-Host "5. Exit"
+    $choice = Read-Host "Enter your choice"
+
+    switch ($choice) {
+        1 {
+            Write-Host "All (telemetry, tips and searchbox)"
+           Write-host "backing up registry keys"
+reg export HKEY_classes_root $env:USERPROFILE\Desktop\HEALTHCHECKLOGS\classesroot.reg
+reg export HKEY_current_user $env:USERPROFILE\currentuser.reg
+reg export HKEY_Local_machine $env:USERPROFILE\localmachine.reg
+reg export HKEY_users $env:USERPROFILE\users.reg
+reg export HKEY_current_config $env:USERPROFILE\currentconfig.reg
+Write-host "downloading reg files"
+Invoke-WebRequest -uri https://raw.githubusercontent.com/smugraptor27371/Randomtesting/main/telemetry.reg -destinationpath $env:temp/telemetry.reg
+Write-host "applying keys..."
+reg import $env:temp\telemtry.reg
+Write-host "downloading reg files"
+Invoke-WebRequest -uri https://raw.githubusercontent.com/smugraptor27371/Randomtesting/main/suggestions_cortana_ect.reg -destinationpath $env:temp/search.reg
+Write-host "applying keys..."
+reg import $env:temp\search.reg
+
+
+
+            
+            break
+        }
+        2 {
+            Write-Host "Telemetry"
+
+  Write-host "backing up registry keys"
+reg export HKEY_classes_root $env:USERPROFILE\Desktop\HEALTHCHECKLOGS\classesroot.reg
+reg export HKEY_current_user $env:USERPROFILE\currentuser.reg
+reg export HKEY_Local_machine $env:USERPROFILE\localmachine.reg
+reg export HKEY_users $env:USERPROFILE\users.reg
+reg export HKEY_current_config $env:USERPROFILE\currentconfig.reg
+Write-host "downloading reg files"
+Invoke-WebRequest -uri https://raw.githubusercontent.com/smugraptor27371/Randomtesting/main/telemetry.reg -destinationpath $env:temp/telemetry.reg
+Write-host "applying keys..."
+reg import $env:temp\telemtry.reg
+            
+            break
+        }
+        3 {
+            Write-Host "Suggestions_cortanaect.reg "
+          
+
+Write-host "backing up registry keys"
+
+reg export HKEY_classes_root $env:USERPROFILE\Desktop\HEALTHCHECKLOGS\classesroot.reg
+reg export HKEY_current_user $env:USERPROFILE\currentuser.reg
+reg export HKEY_Local_machine $env:USERPROFILE\localmachine.reg
+reg export HKEY_users $env:USERPROFILE\users.reg
+reg export HKEY_current_config $env:USERPROFILE\currentconfig.reg
+
+Write-host "downloading reg files"
+Invoke-WebRequest -uri https://raw.githubusercontent.com/smugraptor27371/Randomtesting/main/suggestions_cortana_ect.reg -destinationpath $env:temp/search.reg
+Write-host "applying keys..."
+reg import $env:temp\search.reg
+
+            break
+        }
+       
+        4 {
+            Write-Host " work in progress"
+          
+
+            break
+        }
+       
+       
+        5 {
+            Write-Host "Exit"
+          
+
+            return
+        }
+       
+       
+       
+        default {
+            Write-Host "Invalid choice. Please enter 1-5"
+        }
+    }
+}
+
+
+    Read-Host "Press Enter to continue..."
+
 
     Read-Host "Press Enter to continue..."
 }
