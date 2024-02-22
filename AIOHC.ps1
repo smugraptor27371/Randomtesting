@@ -26,7 +26,7 @@ function Execute-HCSSD {
 function Execute-HCPFSSD {
     Write-Host "HCPFSSD Selected only updating specific apps."
    new-item -path "$env:USERPROFILE\Desktop\HEALTHCHECKLOGS" -itemtype directory  
-   new-item -path "env:Userprofile\Desktop\HEALTHCHECKLOGS\regback" -itemtype directory
+   new-item -path "$env:USERPROFILE\Desktop\HEALTHCHECKLOGS\regback" -itemtype directory
 
 $log = "$env:USERPROFILE\Desktop\HEALTHCHECKLOGS\transcript.txt"
 
