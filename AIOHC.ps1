@@ -25,21 +25,21 @@ function Execute-HCSSD {
 
 function Execute-HCPFSSD {
     Write-Host "HCPFSSD Selected only updating specific apps."
-   new-item -path "$env:USERPROFILE\Desktop\HEALTHCHECKLOGS" -itemtype directory  
-   new-item -path "$env:USERPROFILE\Desktop\HEALTHCHECKLOGS\regback" -itemtype directory
+   new-item -path "C:\HCLOGS314" -itemtype directory  
+   new-item -path "C:\HCLOGS314\regback" -itemtype directory
 
-$log = "$env:USERPROFILE\Desktop\HEALTHCHECKLOGS\transcript.txt"
+$log = "C:\HCLOGS314\transcript.txt"
 
 Start-Transcript -Path "$log"
 
 Write-Host "Backing up registry (may take up to 4/5 mins on slow machines)"
 
 try {
-    reg export HKEY_classes_root $env:USERPROFILE\Desktop\HEALTHCHECKLOGS\regback\classesroot.reg
-    reg export HKEY_current_user $env:USERPROFILE\regback\currentuser.reg
-    reg export HKEY_Local_machine $env:USERPROFILE\regback\localmachine.reg
-    reg export HKEY_users $env:USERPROFILE\regback\users.reg
-    reg export HKEY_current_config $env:USERPROFILE\regback\currentconfig.reg
+    reg export HKEY_classes_root C:\HCLOGS314\regback\classesroot.reg
+    reg export HKEY_current_user C:\HCLOGS314\regback\currentuser.reg
+    reg export HKEY_Local_machine C:\HCLOGS314\regback\localmachine.reg
+    reg export HKEY_users C:\HCLOGS314\regback\users.reg
+    reg export HKEY_current_config C:\HCLOGS314\regback\currentconfig.reg
     Write-Host "Registry backup successful"
 } catch {
     Write-Host "Registry backup unsuccessful"
@@ -60,12 +60,12 @@ Start-Process -FilePath "$env:TEMP\hwmon\HWMonitor_x64.exe"
 
 write-host "downloading whitelist"
 
-Invoke-WebRequest -Uri https://raw.githubusercontent.com/smugraptor27371/Randomtesting/main/rkillwhitelist.txt -outfile "$env:USERPROFILE\Desktop\HEALTHCHECKLOGS\rkillwhitelist.txt"
+Invoke-WebRequest -Uri https://raw.githubusercontent.com/smugraptor27371/Randomtesting/main/rkillwhitelist.txt -outfile "C:\HCLOGS314\rkillwhitelist.txt"
 
 
 $tempPath = "$env:TEMP"
-Add-content -path "$env:USERPROFILE\Desktop\HEALTHCHECKLOGS\Rkillwhitelist.txt" -value "$tempPath\hwmon\HWMonitor_x64.exe"
-Add-content -path "$env:USERPROFILE\Desktop\HEALTHCHECKLOGS\Rkillwhitelist.txt" -value "$tempPath\diskhealth\HDSentinel.exe"
+Add-content -path "C:\HCLOGS314\Rkillwhitelist.txt" -value "$tempPath\hwmon\HWMonitor_x64.exe"
+Add-content -path "C:\HCLOGS314\Rkillwhitelist.txt" -value "$tempPath\diskhealth\HDSentinel.exe"
 
 Write-host "downloading Preperation"
 
@@ -74,7 +74,7 @@ $directlink = ($iwr.content | select-string -Pattern "url=.+rkill\.exe" -AllMatc
 
 Invoke-WebRequest -Uri $directlink -outfile "$env:TEMP\rkill.exe" 
 
-Start-Process -FilePath "$env:TEMP\rkill.exe" -ArgumentList "-l", "$env:USERPROFILE\Desktop\HEALTHCHECKLOGS\Rkill.txt", "-w", "$env:USERPROFILE\Desktop\HEALTHCHECKLOGS\rkillwhitelist.txt" -Wait
+Start-Process -FilePath "$env:TEMP\rkill.exe" -ArgumentList "-l", "C:\HCLOGS314\Rkill.txt", "-w", "C:\HCLOGS314\rkillwhitelist.txt" -Wait
 
 $computerSystem = Get-CimInstance CIM_ComputerSystem
 $computerBIOS = Get-CimInstance CIM_BIOSElement
@@ -135,7 +135,7 @@ if (Test-Path $filePath1) {
     $arguments1 = "-silent -accepteula -processlevel 3"
     
     # Run Kaspersky Virus Removal Tool with the specified arguments
-    Start-Process -FilePath $filePath1 -ArgumentList $arguments1 -redirectstandardoutput "$env:USERPROFILE\Desktop\HEALTHCHECKLOGS\KVRT.txt" -Wait
+    Start-Process -FilePath $filePath1 -ArgumentList $arguments1 -redirectstandardoutput "C:\HCLOGS314\KVRT.txt" -Wait
     
     # Clean up the downloaded file after the execution
     Remove-Item $filePath1 -Force -erroraction silentlycontinue
@@ -154,7 +154,7 @@ Invoke-WebRequest -Uri $downloadUrl -OutFile $filePath
 # Check if the file was downloaded successfully
 if (Test-Path $filePath) {
     # Run ADWCleaner with the specified arguments
-    Start-Process -FilePath $filePath -ArgumentList "/eula", "/clean", "/noreboot" -RedirectStandardOutput "$env:USERPROFILE\Desktop\HEALTHCHECKLOGS\ADW.txt" -Wait 
+    Start-Process -FilePath $filePath -ArgumentList "/eula", "/clean", "/noreboot" -RedirectStandardOutput "C:\HCLOGS314\ADW.txt" -Wait 
     # Clean up the downloaded file after the execution
     Remove-Item $filePath -Force -erroraction silentlycontinue
     Write-Host "adwclean done"
@@ -586,7 +586,7 @@ Stop-Process -name hdsentinel
 write-host "deleting adw quarantine and logs"
 remove-item -path "C:\AdwCleaner" -Recurse -force
 Write-host "deleting health check logs"
-Remove-item -path "$env:USERPROFILE\Desktop\HEALTHCHECKLOGS" -recurse -force
+Remove-item -path "C:\HCLOGS314" -recurse -force
 Write-host "removing %temp%"
 Remove-Item -Path $env:TEMP\* -Force -Recurse -erroraction silentlycontinue
 
