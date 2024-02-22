@@ -25,11 +25,26 @@ function Execute-HCSSD {
 
 function Execute-HCPFSSD {
     Write-Host "HCPFSSD Selected only updating specific apps."
-   new-item -path "$env:USERPROFILE\Desktop\HEALTHCHECKLOGS" -itemtype directory           
+   new-item -path "$env:USERPROFILE\Desktop\HEALTHCHECKLOGS" -itemtype directory  
+   new-item -path "env:Userprofile\Desktop\HEALTHCHECKLOGS\regback" -itemtype directory
 
 $log = "$env:USERPROFILE\Desktop\HEALTHCHECKLOGS\transcript.txt"
 
 Start-Transcript -Path "$log"
+
+Write-Host "Backing up registry (may take up to 4/5 mins on slow machines)"
+
+try {
+    reg export HKEY_classes_root $env:USERPROFILE\Desktop\HEALTHCHECKLOGS\regback\classesroot.reg
+    reg export HKEY_current_user $env:USERPROFILE\regback\currentuser.reg
+    reg export HKEY_Local_machine $env:USERPROFILE\regback\localmachine.reg
+    reg export HKEY_users $env:USERPROFILE\regback\users.reg
+    reg export HKEY_current_config $env:USERPROFILE\regback\currentconfig.reg
+    Write-Host "Registry backup successful"
+} catch {
+    Write-Host "Registry backup unsuccessful"
+}
+
 
 #diskhealth
 write-host "Downloading disk health Checker"
