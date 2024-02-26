@@ -458,11 +458,11 @@ function Execute-Option6 {
         1 {
             Write-Host "All (telemetry, tips and searchbox)"
            Write-host "backing up registry keys"
-reg export HKEY_classes_root $env:USERPROFILE\Desktop\HEALTHCHECKLOGS\classesroot.reg
-reg export HKEY_current_user $env:USERPROFILE\currentuser.reg
-reg export HKEY_Local_machine $env:USERPROFILE\localmachine.reg
-reg export HKEY_users $env:USERPROFILE\users.reg
-reg export HKEY_current_config $env:USERPROFILE\currentconfig.reg
+reg export HKEY_classes_root "C:\HCLOGS314\classes_root"
+reg export HKEY_current_user "C:\HCLOGS314\current_user"
+reg export HKEY_Local_machine "C:\HCLOGS314\localmachine.reg"
+reg export HKEY_users "C:\HCLOGS314\transcript.txt\users.reg"
+reg export HKEY_current_config "C:\HCLOGS314\currentconfig.reg"
 Write-host "downloading reg files"
 Invoke-WebRequest -uri https://raw.githubusercontent.com/smugraptor27371/Randomtesting/main/telemetry.reg -destinationpath $env:temp/telemetry.reg
 Write-host "applying keys..."
