@@ -203,6 +203,11 @@ winget update mozilla.firefox --accept-source-agreements --accept-package-agreem
 Winget update thedocumentfoundation.libreoffice --accept-source-agreements --accept-package-agreements
 winget update Adobe.Acrobat.Reader.64-bit --accept-source-agreements --accept-package-agreements
 
+
+write-host "disabling powershell 2.0 for security"
+Disable-WindowsOptionalFeature -Online -FeatureName MicrosoftWindowsPowerShellV2
+
+
 Write-host "defrag/trim" 
 defrag /C /O /V
 
