@@ -209,6 +209,11 @@ disable-windowserrorreporting
 Write-host "disabling powershell 2.0 for security"
 Disable-WindowsOptionalFeature -Online -FeatureName MicrosoftWindowsPowerShellV2
 
+Write-host "stopping mem dump files being over written for easeir troubleshooting"
+Write-host "downloading reg files"
+Invoke-WebRequest -uri https://raw.githubusercontent.com/smugraptor27371/Randomtesting/main/memdump.reg -destinationpath $env:temp/memdump.reg
+Write-host "applying keys..."
+reg import $env:temp\memdump.reg
 
 Write-host "defrag/trim" 
 defrag /C /O /V
