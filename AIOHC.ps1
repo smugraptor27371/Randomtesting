@@ -62,7 +62,6 @@ write-host "downloading whitelist"
 
 Invoke-WebRequest -Uri https://raw.githubusercontent.com/smugraptor27371/Randomtesting/main/rkillwhitelist.txt -outfile "C:\HCLOGS314\rkillwhitelist.txt"
 
-
 $tempPath = "$env:TEMP"
 Add-content -path "C:\HCLOGS314\Rkillwhitelist.txt" -value "$tempPath\hwmon\HWMonitor_x64.exe"
 Add-content -path "C:\HCLOGS314\Rkillwhitelist.txt" -value "$tempPath\diskhealth\HDSentinel.exe"
@@ -75,6 +74,9 @@ $directlink = ($iwr.content | select-string -Pattern "url=.+rkill\.exe" -AllMatc
 Invoke-WebRequest -Uri $directlink -outfile "$env:TEMP\rkill.exe" 
 
 Start-Process -FilePath "$env:TEMP\rkill.exe" -ArgumentList "-l", "C:\HCLOGS314\Rkill.txt", "-w", "C:\HCLOGS314\rkillwhitelist.txt" -Wait
+
+Write-host "running chkdsk /scan"
+chkdsk /scan /perf 
 
 $computerSystem = Get-CimInstance CIM_ComputerSystem
 $computerBIOS = Get-CimInstance CIM_BIOSElement
