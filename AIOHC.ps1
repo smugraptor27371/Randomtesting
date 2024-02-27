@@ -181,6 +181,8 @@ Start-Process -FilePath "C:\Windows\System32\Dism.exe" -ArgumentList "/Online /C
 Write-Host "Executing SFC..."
 Start-Process -FilePath "C:\Windows\System32\sfc.exe" -ArgumentList "/scannow" -Wait
 
+devmgmt
+
 Write-host "downloading webroot"
 invoke-webrequest -Uri "http://anywhere.webrootcloudav.com/zerol/syswranalyzer.exe" -outfile "$env:TEMP/Webroot.exe"
 Write-Host "running"
