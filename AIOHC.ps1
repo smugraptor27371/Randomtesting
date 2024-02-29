@@ -76,7 +76,7 @@ Invoke-WebRequest -Uri $directlink -outfile "$env:TEMP\rkill.exe"
 Start-Process -FilePath "$env:TEMP\rkill.exe" -ArgumentList "-l", "C:\HCLOGS314\Rkill.txt", "-w", "C:\HCLOGS314\rkillwhitelist.txt" -Wait
 
 Write-host "running chkdsk /scan"
-chkdsk /scan /perf 
+chkdsk /scan /perf >> C:\HCLOGS314\chkdsklog.txt
 
 $computerSystem = Get-CimInstance CIM_ComputerSystem
 $computerBIOS = Get-CimInstance CIM_BIOSElement
