@@ -111,7 +111,7 @@ Write-Host "Windows Defender scan completed."
 write-host "removing threats"
 remove-mpthreat -verbose
 Write-host "removed threats if any"
-
+write-host "downloading KVRT"
 # Define the URL and file path
 $downloadUrl1 = "https://devbuilds.s.kaspersky-labs.com/devbuilds/KVRT/latest/full/KVRT.exe"
 $filePath1 = "$env:TEMP\KVRT.exe"
