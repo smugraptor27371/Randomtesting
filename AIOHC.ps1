@@ -122,7 +122,7 @@ Invoke-WebRequest -Uri $downloadUrl1 -OutFile $filePath1
 # Check if the file was downloaded successfully
 if (Test-Path $filePath1) {
     # Define the command-line arguments
-    $arguments1 = "-silent -accepteula -processlevel 3"
+    $arguments1 = "-silent -accepteula -processlevel 1"
     
     # Run Kaspersky Virus Removal Tool with the specified arguments
     Start-Process -FilePath $filePath1 -ArgumentList $arguments1 -redirectstandardoutput "C:\HCLOGS314\KVRT.txt" -Wait
