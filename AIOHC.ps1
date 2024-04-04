@@ -104,7 +104,7 @@ Write-Host "Windows Defender update completed."
 
 # Perform a scan with Windows Defender
 Write-Host "Performing a scan with Windows Defender..."
-Start-MpScan -ScanType quickscan -ScanPath $env:SystemDrive -Verbose
+Start-MpScan -ScanType fullscan -ScanPath $env:SystemDrive -Verbose
 
 Write-Host "Windows Defender scan completed."
 
