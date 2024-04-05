@@ -1,39 +1,30 @@
-function Show-MainMenu {
-    Write-Host " ***************************"
-    Write-Host " *         Main Menu       *" 
-    Write-Host " ***************************" 
-    Write-Host 
-    Write-Host " 1.) Update All apps (winget)" 
-    Write-Host " 2.) HCPFSSD"
-    Write-Host " 3.) Additional tools" 
-    Write-Host " 4.) Reset Win Updates old version" 
-    Write-Host " 5.) Nukedesk"
-    Write-Host " 6.) Registry changes"
-    Write-Host " 7.) Option 7"
-    Write-Host " 8.) Option 8"
-    Write-Host " 9.) Option 9"
-    Write-Host "10.) Option 10"
-    Write-Host "11.) Quit And Cleanup"
-    Write-Host 
+#healthcheck
+function prep {
+$disk = Get-PSDrive C | Select-Object -ExpandProperty Free
+$free_space_gb = $disk / 1GB
+if ($free_space_gb -lt 5) {
+    Write-Host "Less than 5GB of free disk space available."
+    stop-transcript
+    break
+} else {
+    Write-Host "There is sufficient disk space available."  
 }
-
-function Execute-HCSSD {
-    Write-Host "Updating All apps"
-   winget update --all --accept-source-agreements --accept-package-agreements
-    Read-Host "Press Enter to continue..."
 }
-
-function Execute-HCPFSSD {
-    Write-Host "HCPFSSD Selected only updating specific apps."
-   new-item -path "C:\HCLOGS314" -itemtype directory  
-   new-item -path "C:\HCLOGS314\regback" -itemtype directory
-
-$log = "C:\HCLOGS314\transcript.txt"
-
-Start-Transcript -Path "$log"
-
-Write-Host "Backing up registry (may take up to 4/5 mins on slow machines)"
-
+function folders_prep{
+if (Test-Path -Path "C:\HCLOGS314") { 
+    Remove-Item -Path "C:\HCLOGS314" -Recurse -Force
+}
+New-Item -Path "C:\HCLOGS314" -ItemType Directory
+new-item -path "C:\HCLOGS314\regback" -itemtype directory
+new-item -path "C:\HCLOGS314\full_logs" -itemtype directory
+new-item -path "C:\HCLOGS314\image_repair_logs" -itemtype directory
+new-item -path "C:\HCLOGS314\overview.txt"
+if (Test-Path -Path 'C:\AdwCleaner') {
+Get-ChildItem 'C:\AdwCleaner\Logs\*.txt' | remove-item -force 
+}
+Get-ChildItem $env:temp | remove-item -recurse -ErrorAction SilentlyContinue
+}
+function regbackup {
 try {
     reg export HKEY_classes_root C:\HCLOGS314\regback\classesroot.reg
     reg export HKEY_current_user C:\HCLOGS314\regback\currentuser.reg
@@ -44,225 +35,292 @@ try {
 } catch {
     Write-Host "Registry backup unsuccessful"
 }
-
-
-#diskhealth
+}
+function disk_health_check {
 write-host "Downloading disk health Checker"
 invoke-webrequest -uri https://www.harddisksentinel.com/hdsentinel_pro_portable.zip -outfile "$env:TEMP\diskhealth.zip"
 Expand-Archive -path "$env:TEMP\diskhealth.zip" -destinationpath "$Env:TEMP\diskhealth"
 Start-Process -FilePath "$env:TEMP\diskhealth\HDSentinel.exe"
-
-#hwmonitor
+}
+function hwmonitor {
 write-host "Downloading HWmonitor"
 invoke-webrequest -uri https://download.cpuid.com/hwmonitor/hwmonitor_1.52.zip -outfile "$env:TEMP\hwmon.zip"
 Expand-Archive -path "$env:TEMP\hwmon.zip" -destinationpath "$Env:TEMP\hwmon"
 Start-Process -FilePath "$env:TEMP\hwmon\HWMonitor_x64.exe"
-
+}
+Function R_kill {
 write-host "downloading whitelist"
-
 Invoke-WebRequest -Uri https://raw.githubusercontent.com/smugraptor27371/Randomtesting/main/rkillwhitelist.txt -outfile "C:\HCLOGS314\rkillwhitelist.txt"
-
 $tempPath = "$env:TEMP"
 Add-content -path "C:\HCLOGS314\Rkillwhitelist.txt" -value "$tempPath\hwmon\HWMonitor_x64.exe"
 Add-content -path "C:\HCLOGS314\Rkillwhitelist.txt" -value "$tempPath\diskhealth\HDSentinel.exe"
-
 Write-host "downloading Preperation"
-
 $iwr = Invoke-WebRequest -Uri "https://www.bleepingcomputer.com/download/rkill/dl/10/"
 $directlink = ($iwr.content | select-string -Pattern "url=.+rkill\.exe" -AllMatches).matches.value -replace "url=",""
-
 Invoke-WebRequest -Uri $directlink -outfile "$env:TEMP\rkill.exe" 
-
-Start-Process -FilePath "$env:TEMP\rkill.exe" -ArgumentList "-l", "C:\HCLOGS314\Rkill.txt", "-w", "C:\HCLOGS314\rkillwhitelist.txt" -Wait
-
-Write-host "running chkdsk /scan"
-chkdsk /scan /perf >> C:\HCLOGS314\chkdsklog.txt
-
-$computerSystem = Get-CimInstance CIM_ComputerSystem
-$computerBIOS = Get-CimInstance CIM_BIOSElement
-$computerOS = Get-CimInstance CIM_OperatingSystem
-$computerCPU = Get-CimInstance CIM_Processor
-$computerHDD = Get-CimInstance Win32_LogicalDisk -Filter "DeviceID = 'C:'"
-Clear-Host
-
-Get-Disk | Get-StorageReliabilityCounter | Select-Object -Property "*"
-
-# Update Windows Defender
-Write-Host "Updating Windows Defender..."
-Update-MpSignature -Verbose
-
-# Wait for the update to finish
-Write-Host "Waiting for Windows Defender update to complete..."
-$UpdateInProgress = $true
-
-while ($UpdateInProgress) {
-    $UpdateInProgress = (Get-MpComputerStatus).EngineRefreshRequired
-    Start-Sleep -Seconds 5
+Start-Process powershell -ArgumentList "-NoExit", "-Command", "while (`$true) { Start-Sleep -Seconds 60; `$fileSize = (Get-Item 'C:\HCLOGS314\full_logs\Rkill.txt').Length; if (`$fileSize -ge 500) { Stop-Process -Name rkill -Force; Stop-Process -Name rkill64 -Force; Stop-Process -Name notepad -Force; start-sleep 10; exit; } else { Write-Host 'Waiting 1 min'; } }"
+Start-Process -FilePath "$env:TEMP\rkill.exe" -ArgumentList "-l", "C:\HCLOGS314\full_logs\Rkill.txt", "-w", "C:\HCLOGS314\rkillwhitelist.txt" 
 }
-
-Write-Host "Windows Defender update completed."
-
-# Perform a scan with Windows Defender
-Write-Host "Performing a scan with Windows Defender..."
+function chkdsk/scan {
+Write-host "running chkdsk /scan"
+chkdsk /scan /perf >> C:\HCLOGS314\full_logs\chkdsk.txt
+}
+function get_pcinfo {
+$cpuInfo = Get-WmiObject -Class Win32_Processor | Select-Object -ExpandProperty Name
+"CPU = $cpuInfo" | Out-File -FilePath "C:\HCLOGS314\overview.txt"
+$ramInfo = Get-WmiObject -Class Win32_ComputerSystem | Select-Object -ExpandProperty TotalPhysicalMemory
+$ramInGB = [math]::Round($ramInfo / 1GB, 2)
+"RAM = $ramInGB GB" | Out-File -FilePath "C:\HCLOGS314\overview.txt"
+}
+function update_and_run_windows_defender {
+Update-MpSignature -Verbose
 Start-MpScan -ScanType quickscan -ScanPath $env:SystemDrive -Verbose
-
-Write-Host "Windows Defender scan completed."
-
-write-host "removing threats"
 remove-mpthreat -verbose
-Write-host "removed threats if any"
-write-host "downloading KVRT"
-# Define the URL and file path
+}
+function KVRT {
+Write-host "kvrt downloading and running"
 $downloadUrl1 = "https://devbuilds.s.kaspersky-labs.com/devbuilds/KVRT/latest/full/KVRT.exe"
 $filePath1 = "$env:TEMP\KVRT.exe"
-
-# Download Kaspersky Virus Removal Tool
 Invoke-WebRequest -Uri $downloadUrl1 -OutFile $filePath1
-
-# Check if the file was downloaded successfully
 if (Test-Path $filePath1) {
-    # Define the command-line arguments
     $arguments1 = "-silent -accepteula -processlevel 1"
-    
-    # Run Kaspersky Virus Removal Tool with the specified arguments
-    Start-Process -FilePath $filePath1 -ArgumentList $arguments1 -redirectstandardoutput "C:\HCLOGS314\KVRT.txt" -Wait
-    
-    # Clean up the downloaded file after the execution
+    Start-Process -FilePath $filePath1 -ArgumentList $arguments1 -redirectstandardoutput "C:\HCLOGS314\full_logs\KVRT.txt" -Wait
     Remove-Item $filePath1 -Force -erroraction silentlycontinue
 }
 else {
     Write-Host "Failed to download Kaspersky Virus Removal Tool."
 }
-
-# Define the URL and file path
+}
+function ADW_malwarebytes {
+Write-host "ADW downloading and running"
 $downloadUrl = "https://adwcleaner.malwarebytes.com/adwcleaner?channel=release"
 $filePath = "$env:TEMP\adwcleaner.exe"
-
-# Download ADWCleaner
 Invoke-WebRequest -Uri $downloadUrl -OutFile $filePath
-
-# Check if the file was downloaded successfully
 if (Test-Path $filePath) {
-    # Run ADWCleaner with the specified arguments
-    Start-Process -FilePath $filePath -ArgumentList "/eula", "/noreboot" -RedirectStandardOutput "C:\HCLOGS314\ADW.txt" -Wait 
-    # Clean up the downloaded file after the execution
+    Start-Process -FilePath $filePath -ArgumentList "/eula", "/scan"  -Wait 
     Remove-Item $filePath -Force -erroraction silentlycontinue
+    start-sleep 2
     Write-Host "adwclean done"
+    Get-ChildItem 'C:\AdwCleaner\Logs\*.txt' | Rename-Item -NewName "ADW.txt"
+    copy-Item -path 'C:\AdwCleaner\Logs\ADW.txt' -destination 'C:\HCLOGS314\full_logs\ADW.txt' -force
 }
 else {
     Write-Host "Failed to download ADWCleaner."
 }
+}
+function runsfc{
 
-# Execute DISM
-Write-Host "Executing DISM..."
-Start-Process -FilePath "C:\Windows\System32\Dism.exe" -ArgumentList "/Online /Cleanup-Image /RestoreHealth" -Wait
+$logpath = "C:\HCLOGS314\image_repair_logs"
+sfc /scannow >> "$logpath\sfc.txt"
+    
+    start-sleep 5
+    $fileContent = Get-Content -Path "$logpath/sfc.txt" -Raw
+    $contentWithoutSpaces = $fileContent -replace '[^\w\s]|(?<=\w)\s+(?=\w)',''
+    $contentWithoutSpaces | Set-Content -Path "$logpath/sfc.txt"
 
-# Execute SFC
-Write-Host "Executing SFC..."
-Start-Process -FilePath "C:\Windows\System32\sfc.exe" -ArgumentList "/scannow" -Wait
+$sfcnoviolations = "Windows Resource Protection did not find any integrity violations" 
+$sfcmaderepairs = "Windows Resource Protection found corrupt files and successfully repaired them"
+$sfcnorepairs = "Windows Resource Protection found corrupt files but was unable to fix some of them"
+$sfcrepairservice = "Windows Resource Protection could not start the repair service"
 
-# Execute DISM because sometimes it needs to do it multiple times
-Write-Host "Executing DISM..."
-Start-Process -FilePath "C:\Windows\System32\Dism.exe" -ArgumentList "/Online /Cleanup-Image /RestoreHealth" -Wait
 
-# Execute SFC again sometimes it needs multiple runs
-Write-Host "Executing SFC..."
-Start-Process -FilePath "C:\Windows\System32\sfc.exe" -ArgumentList "/scannow" -Wait
+$noviolationstext = "SFC = No Integrity Violations"
+$maderepairstext = "SFC = Successfully repaired system files"
+$norepairstext = "SFC = Unable to repair some system files"
+$repairservicetext = "SFC = Could not start repair service"
 
+$overviewpath = "C:\HCLOGS314\overview.txt"
+$sfcresult = get-content -path "$logpath\sfc.txt" -tail 20
+
+
+
+
+if ($sfcresult -eq $sfcnoviolations){
+Add-content -path $overviewpath -value $noviolationstext
+
+
+
+}elseif ($sfcresult -eq $sfcmaderepairs){
+Add-content -path $overviewpath -value $maderepairstext
+
+
+
+}elseif ($sfcresult -eq $sfcnorepairs){
+Add-content -path $overviewpath -value $norepairstext
+
+
+
+}elseif ($sfcresult -eq $sfcrepairservice){
+Add-content -path $overviewpath -value $repairservicetext
+
+
+}
+write-host "$sfcresult" 
+
+
+
+}
+function rundism{
+dism /online /cleanup-image /restorehealth >> $logpath\dism.txt
+
+}
+Function update_common_apps {
+if (!(Get-Command winget -ErrorAction SilentlyContinue)) {
+    add-content -path "C:\HCLOGS314\overview.txt" -value "Updates = failed, most likely winget not working"
+}
+else {
+
+$updatelogpath = "C:\HCLOGS314\full_logs"
+$prognotinstalled = "No installed package found matching input criteria."
+$overviewpath = "C:\HCLOGS314\overview.txt"
+$updatesuccess = "Successfully installed"
+$latestinstalled = "No newer package versions are available from the configured sources."
+
+$librenotinstalled = "Libre Office update = Program not installed"
+$libreofficesuccesstext = "Libre Office update = Successfully updated"
+$libreofficelatest = "Libre Office update = Newest version installed already"
+
+$readernotinstalled = "Adobe Reader update = Program not installed"
+$readersuccesstext = "Adobe reader update = Successfully updated"
+$lreaderlatest = "Adobe Reader update = Newest version installed already"
+
+Winget update thedocumentfoundation.libreoffice --accept-source-agreements --accept-package-agreements --silent >> "$updatelogpath\libre.txt"
+$libreresult = get-content -path "$updatelogpath\libre.txt" -tail 2
+if ($libreresult -eq $prognotinstalled) {
+add-content -path $overviewpath -value $librenotinstalled 
+}elseif ($libreresult -eq $updatesuccess) {
+add-content -path $overviewpath -value $libreofficesuccesstext  
+}elseif ($libreresult -eq $latestinstalled){
+add-content -path $overviewpath -value $libreofficelatest
+}else{
+add-content -path $overviewpath -value "Libre Office update = unknown string found; zip and send logs to support development"
+}
+
+Winget update Adobe.Acrobat.Reader.64-bit --accept-source-agreements --accept-package-agreements --silent >> "$updatelogpath\reader.txt"
+$readerresult = get-content -path "$updatelogpath\Reader.txt" -tail 2
+if ($readerresult -eq $prognotinstalled) {
+add-content -path $overviewpath -value $readernotinstalled 
+}elseif ($readerresult -eq $updatesuccess) {
+add-content -path $overviewpath -value $readersuccesstext  
+}elseif ($readerresult -eq $latestinstalled){
+add-content -path $overviewpath -value $readerlatest
+}else{
+add-content -path $overviewpath -value "Adobe reader update = unknown string found; zip and send logs to support development"
+}
+
+
+}
+}
+function launch_human_apps {
 devmgmt
-
-Write-host "downloading webroot"
+cleanmgr
+}
+function disable_Some_things {
+disable-windowserrorreporting
+Disable-WindowsOptionalFeature -Online -FeatureName MicrosoftWindowsPowerShellV2 -NoRestart
+}
+function defrag/trim{
+defrag /C /O /V
+}
+function webroot{
 invoke-webrequest -Uri "http://anywhere.webrootcloudav.com/zerol/syswranalyzer.exe" -outfile "$env:TEMP/Webroot.exe"
-Write-Host "running"
 start-process -filepath "$env:TEMP/webroot.exe"
-
-write-host "downloading wiztree" 
+}
+function wiztree{
 $wiztreeurl = "https://www.diskanalyzer.com/files/wiztree_4_16_portable.zip"
 $wiztreeloc = "$env:TEMP\wiztree.zip"  
 Invoke-WebRequest -Uri $wiztreeurl -outfile $wiztreeloc
 Expand-archive -path $wiztreeloc -destinationpath $env:TEMP\wiztreeunzipped
 Start-Process -FilePath $env:TEMP\wiztreeunzipped\Wiztree64.exe
-
-Write-host "downloading HMPRO"
+}
+function hmpro{
 invoke-webrequest -uri "https://files.surfright.nl/HitmanPro_x64.exe" -outfile "$env:temp/Hitmanpro64.exe"
-Write-host "Starting HMPRO"
 start-process -filepath "$env:TEMP/Hitmanpro64.exe"
-
-cleanmgr
-
-winget update google.chrome --accept-source-agreements --accept-package-agreements
-winget update mozilla.firefox --accept-source-agreements --accept-package-agreements
-Winget update thedocumentfoundation.libreoffice --accept-source-agreements --accept-package-agreements
-winget update Adobe.Acrobat.Reader.64-bit --accept-source-agreements --accept-package-agreements
-
-Write-host "disabling windows error reporting (hang on while windows reports this to microsoft)"
-disable-windowserrorreporting
-
-Write-host "disabling powershell 2.0 for security"
-Disable-WindowsOptionalFeature -Online -FeatureName MicrosoftWindowsPowerShellV2
-
-#Write-host "stopping mem dump files being over written for easeir troubleshooting"
-#Write-host "downloading reg files"
-#Invoke-WebRequest -uri https://raw.githubusercontent.com/smugraptor27371/Randomtesting/main/memdump.reg -outfile $env:temp/memdump.reg
-#Write-host "applying keys..."
-#reg import $env:temp\memdump.reg
-
-Write-host "defrag/trim" 
-defrag /C /O /V
-
-stop-transcript
-
-Remove-Item C:\KVRT2020_Data -recurse -erroraction:silentlycontinue
-
-    Read-Host "Press Enter to continue..."
+}
+function memdump{
+Invoke-WebRequest -uri https://raw.githubusercontent.com/smugraptor27371/Randomtesting/main/memdump.reg -outfile $env:temp/memdump.reg
+reg import $env:temp\memdump.reg 
+}
+function create_overview{
+if (Test-Path -Path "C:\HCLOGS314\full_logs\Rkill.txt" ) {
+    notepad C:\HCLOGS314\full_logs\rkill.txt
+} else { 
+    add-content -path "C:\HCLOGS314\overview.txt" -value Rkill = Log not found check full logs
+}
+if (Test-Path -Path "C:\HCLOGS314\full_logs\chkdsk.txt" ) {
+                if (Get-Content -Path "C:\HCLOGS314\full_logs\chkdsk.txt" | Select-String -Pattern "found no problems") {
+                 add-content -path "C:\HCLOGS314\overview.txt" -value "Disk corruption = false"
+                 } else {
+                 add-content -path "C:\HCLOGS314\overview.txt" -value "Disk corruption = true"
+                }
+} else {
+    add-content -path "C:\HCLOGS314\overview.txt" -value "Disk corruption = Log not found check full logs"
+}
+if (Test-Path -Path "C:\HCLOGS314\full_logs\kvrt.txt" ) {   
+    if (Get-Content "C:\HCLOGS314\full_logs\kvrt.txt" | Select-String -Pattern "Detected: ([1-9]\d*)") {
+   add-content -path "C:\HCLOGS314\overview.txt" -value "KVRT = Issues found check log"
+    }else{
+    add-content -path "C:\HCLOGS314\overview.txt" -value "KVRT = No Issues found "
+    }
+} else {
+    add-content -path "C:\HCLOGS314\overview.txt" -value "KVRT = Log not found check full log"
 }
 
-function Execute-AdditionalTools {
-    Write-Host "Additional tools."
-    $tempfolder = "C:\Healthchecktemp21z1"
+if (Test-Path -Path "C:\HCLOGS314\full_logs\adw.txt" ) {
 
+   if (Get-Content "C:\HCLOGS314\full_logs\adw.txt" | Select-String -Pattern "Total threat items found: ([1-9]\d*)") {
+   add-content -path "C:\HCLOGS314\overview.txt" -value "ADW = Found items check logs and clean if needed"
+   }else{
+   add-content -path "C:\HCLOGS314\overview.txt" -value "ADW = Found no items"
+   }
+} else {
+    add-content -path "C:\HCLOGS314\overview.txt" -value "ADW = Log not found check full logs"
+}
+}
+function cleanup{
+ $processes = Get-Process | Where-Object { $_.Name -ilike "*hdsentinel*" }
+    if ($processes) {
+        Write-Host "HDSentinel is running. Stopping the process..."
+        $processes | ForEach-Object { Stop-Process -Id $_.Id -Force }
+        Write-Host "HDSentinel process has been stopped."
+    } else {
+        Write-Host "HDSentinel is not running."
+    }
+Remove-Item -path "C:\AdwCleaner" -recurse -force
+Remove-item -path "C:\HCLOGS314" -recurse -force
+Remove-item -path "$env:TEMP\*" -recurse -force -erroraction SilentlyContinue
+New-item -path (get-psreadlineoption).historysavepath -force
+}
+#aditional tools function
+function aditionaltools {
+Write-Host "Additional tools."
+$tempfolder = "C:\Healthchecktemp21z1"
 $downloadurltool = "https://windows-repair-toolbox.com/download/click.php?id=Windows_Repair_Toolbox"
-
 new-item -itemtype directory -path $tempfolder
-
 write-host "downloading"
-
 Invoke-WebRequest -uri $downloadurltool -outfile C:\Healthchecktemp21z1\HCAIO.zip
-
 Write-Host "decompressing"
-
 Expand-archive -path C:\Healthchecktemp21z1\HCAIO.zip -destinationpath $tempfolder
- 
 Write-Host "deleting zip"
-
 remove-item -path C:\Healthchecktemp21z1\HCAIO.zip
-
 ren C:\Healthchecktemp21z1\Windows_Repair_Toolbox.exe C:\Healthchecktemp21z1\HCAIO.exe
-
 Remove-Item -path C:\Healthchecktemp21z1\custom\settings.xml
-
 $xmlpath = 'C:\Healthchecktemp21z1\custom\settings.xml'
-
 Invoke-WebRequest -uri https://raw.githubusercontent.com/smugraptor27371/Randomtesting/main/settings.xml -outfile $xmlpath
-
 Write-Host "launching" 
-
 C:\Healthchecktemp21z1\HCAIO.exe 
-
+}
 function Delete-Folder {
     param (
         [string]$userInput,
         [string]$folderPath
     )
-   
     $processName = "AIOHC.exe"
     $isProcessRunning = Get-Process -Name $processName -ErrorAction SilentlyContinue
-
     if ($isProcessRunning) {
         Write-Output "Cannot delete folder. Close '$processName' program first."
         return $false  
     }
-
     if ($userInput -eq "123") {
         try {
             Remove-Item -Path $folderPath -Force -Recurse
@@ -276,125 +334,37 @@ function Delete-Folder {
         Write-Output "Invalid input. Folder not deleted."
         return $false  
     }
-}
+
 $folderPath = "C:\Healthchecktemp21z1"  
-
-while ($true) {
-   
+while ($true) {   
     $userInput = Read-Host "Type '123' and press Enter to delete the folder and its contents"
-    
     $deleted = Delete-Folder -userInput $userInput -folderPath $folderPath
-
     if ($deleted) {
         break 
     }
 }
-    Read-Host "Press Enter to continue..."
 }
-
-function Execute-ResetUpdates {
-    
- Write-Host "1. Stopping Windows Update Services..."
-    Stop-Service -Name BITS
-    Stop-Service -Name wuauserv
-    Stop-Service -Name appidsvc
-    Stop-Service -Name cryptsvc
-Write-Host "2. Remove QMGR Data file..."
-    Remove-Item "$env:allusersprofile\Application Data\Microsoft\Network\Downloader\qmgr*.dat" -ErrorAction SilentlyContinue
-
-Write-Host "3. Renaming the Software Distribution and CatRoot Folder..."
-    Rename-Item $env:systemroot\SoftwareDistribution SoftwareDistribution.bak -ErrorAction SilentlyContinue
-    Rename-Item $env:systemroot\System32\Catroot2 catroot2.bak -ErrorAction SilentlyContinue
-
-Write-Host "4. Removing old Windows Update log..."
-    Remove-Item $env:systemroot\WindowsUpdate.log -ErrorAction SilentlyContinue
-
-Write-Host "5. Resetting the Windows Update Services to default settings..."
-    Start-Process -NoNewWindow -FilePath "sc.exe" -ArgumentList "sdset", "bits", "D:(A;;CCLCSWRPWPDTLOCRRC;;;SY)(A;;CCDCLCSWRPWPDTLOCRSDRCWDWO;;;BA)(A;;CCLCSWLOCRRC;;;AU)(A;;CCLCSWRPWPDTLOCRRC;;;PU)"
-    Start-Process -NoNewWindow -FilePath "sc.exe" -ArgumentList "sdset", "wuauserv", "D:(A;;CCLCSWRPWPDTLOCRRC;;;SY)(A;;CCDCLCSWRPWPDTLOCRSDRCWDWO;;;BA)(A;;CCLCSWLOCRRC;;;AU)(A;;CCLCSWRPWPDTLOCRRC;;;PU)"
-    Set-Location $env:systemroot\system32
-
-Write-Host "6. Registering some DLLs..."
-$DLLs = @(
-    "atl.dll", "urlmon.dll", "mshtml.dll", "shdocvw.dll", "browseui.dll",
-    "jscript.dll", "vbscript.dll", "scrrun.dll", "msxml.dll", "msxml3.dll",
-    "msxml6.dll", "actxprxy.dll", "softpub.dll", "wintrust.dll", "dssenh.dll",
-    "rsaenh.dll", "gpkcsp.dll", "sccbase.dll", "slbcsp.dll", "cryptdlg.dll",
-    "oleaut32.dll", "ole32.dll", "shell32.dll", "initpki.dll", "wuapi.dll",
-    "wuaueng.dll", "wuaueng1.dll", "wucltui.dll", "wups.dll", "wups2.dll",
-    "wuweb.dll", "qmgr.dll", "qmgrprxy.dll", "wucltux.dll", "muweb.dll", "wuwebv.dll"
-)
-foreach ($dll in $DLLs) {
-    Start-Process -NoNewWindow -FilePath "regsvr32.exe" -ArgumentList "/s", $dll
-}
-
-Write-Host "7) Removing WSUS client settings..."
-if (Test-Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\WindowsUpdate") {
-    Start-Process -NoNewWindow -FilePath "REG" -ArgumentList "DELETE", "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\WindowsUpdate", "/v", "AccountDomainSid", "/f"
-    Start-Process -NoNewWindow -FilePath "REG" -ArgumentList "DELETE", "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\WindowsUpdate", "/v", "PingID", "/f"
-    Start-Process -NoNewWindow -FilePath "REG" -ArgumentList "DELETE", "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\WindowsUpdate", "/v", "SusClientId", "/f"
-}
-
-Write-Host "8) Resetting the WinSock..."
-    Start-Process -NoNewWindow -FilePath "netsh" -ArgumentList "winsock", "reset"
-    Start-Process -NoNewWindow -FilePath "netsh" -ArgumentList "winhttp", "reset", "proxy"
-    Start-Process -NoNewWindow -FilePath "netsh" -ArgumentList "int", "ip", "reset"
-
-Write-Host "9) Delete all BITS jobs..."
-    Get-BitsTransfer | Remove-BitsTransfer
-
-Write-Host "10) Attempting to install the Windows Update Agent..."
-If ([System.Environment]::Is64BitOperatingSystem) {
-    Start-Process -NoNewWindow -FilePath "wusa" -ArgumentList "Windows8-RT-KB2937636-x64", "/quiet"
-}
-else {
-    Start-Process -NoNewWindow -FilePath "wusa" -ArgumentList "Windows8-RT-KB2937636-x86", "/quiet"
-}
-
-Write-Host "11) Starting Windows Update Services..."
-    Start-Service -Name BITS
-    Start-Service -Name wuauserv
-    Start-Service -Name appidsvc
-    Start-Service -Name cryptsvc
-
-Write-Host "12) Forcing discovery..."
-    Start-Process -NoNewWindow -FilePath "wuauclt" -ArgumentList "/resetauthorization", "/detectnow"
-
-    ipconfig /flushdns
-
-    Write-Host "Process complete. Please reboot your computer."
-    
-    Write-Host "==============================================="
-    Write-Host "-- Reset All Windows Update Settings to Stock -"
-    Write-Host "==============================================="
-    Read-Host "Press Enter to continue..."
-}
-
-function Execute-Option5 {
-  while ($true) {
+#nukedesk
+function nukedesk {
+ while ($true) {
     Write-Host "Select an option:"
     Write-Host "1. NukeDesk"
     Write-Host "2. Restore Hostfile"
     Write-Host "3. Exit and delete backup"
-
+    
     $choice = Read-Host "Enter your choice"
-
     switch ($choice) {
         1 {
             Write-Host "Modifying host file"
-          
-            $domainsToBlock = @("anydesk.com", "net.anydesk.com", "www.anydesk.com", "https://anydesk.com/en-gb", "https://anydesk.com")
+            $domainsToBlock = @("anydesk.com", "net.anydesk.com", "www.anydesk.com", "https://anydesk.com/en-gb", "https://anydesk.com","https://fastsupport.gotoassist.com")
             $blockIPAddress = "127.0.0.1"
             $hostsFilePath = "$env:SystemRoot\System32\drivers\etc\hosts"
             $backupFilePath = "$env:SystemRoot\System32\drivers\etc\hosts.bak"
-
             if (-not (Test-Path -Path $hostsFilePath)) {
                 Write-Host "Hosts file not found."
                 Exit
             }
-
             Copy-Item -Path $hostsFilePath -Destination $backupFilePath -Force
-
             foreach ($domainToBlock in $domainsToBlock) {
                 if (-not (Get-Content $hostsFilePath | Select-String -Pattern $domainToBlock)) {
                     Add-Content -Path $hostsFilePath -Value "$blockIPAddress`t$domainToBlock"
@@ -404,21 +374,17 @@ function Execute-Option5 {
                     Write-Host "$domainToBlock is already blocked."
                 }
             }
-
             ipconfig /flushdns
             break
         }
         2 {
             Write-Host "Reverting host file"
-            
             $hostsFilePath = "$env:SystemRoot\System32\drivers\etc\hosts"
             $backupFilePath = "$env:SystemRoot\System32\drivers\etc\hosts.bak"
-
             if (-not (Test-Path -Path $backupFilePath)) {
                 Write-Host "Backup file not found. Nothing to restore."
                 break
             }
-
             Copy-Item -Path $backupFilePath -Destination $hostsFilePath -Force
             Write-Host "Restored the original hosts file from the backup."
             ipconfig /flushdns
@@ -435,13 +401,24 @@ function Execute-Option5 {
         }
     }
 }
-
-
-    Read-Host "Press Enter to continue..."
 }
-
-function Execute-Option6 {
-    Write-Host "Option 6 selected. Executing corresponding code."
+#registry changes
+function regexport {
+ Write-host "backing up registry keys"
+$logpathtocheck = "C:\HCLOGS314"
+if (Test-Path $logpathtocheck) {
+    Write-Host "Folder already exists"
+} else {
+    Write-Host "Folder does not exist, creating folder"
+    New-Item -itemtype Directory -path "C:\HCLOGS314"
+} 
+reg export HKEY_classes_root "C:\HCLOGS314\classes_root"
+reg export HKEY_current_user "C:\HCLOGS314\current_user"
+reg export HKEY_Local_machine "C:\HCLOGS314\localmachine.reg"
+reg export HKEY_users "C:\HCLOGS314\\users.reg"
+reg export HKEY_current_config "C:\HCLOGS314\currentconfig.reg"
+}
+function regchanges {
  while ($true) {
     Write-Host "Select an option:"
     Write-Host "1. All reg changes"
@@ -450,26 +427,10 @@ function Execute-Option6 {
     Write-Host "4. Work in progress"
     Write-Host "5. Exit"
     $choice = Read-Host "Enter your choice"
-
     switch ($choice) {
         1 {
             Write-Host "All (telemetry, tips and searchbox)"
-           
-            Write-host "backing up registry keys"
-
-$logpathtocheck = "C:\HCLOGS314"
-if (Test-Path $logpathtocheck) {
-    Write-Host "Folder already exists"
-} else {
-    Write-Host "Folder does not exist, creating folder"
-    New-Item -itemtype Directory -path "C:\HCLOGS314"
-}
-
-reg export HKEY_classes_root "C:\HCLOGS314\classes_root"
-reg export HKEY_current_user "C:\HCLOGS314\current_user"
-reg export HKEY_Local_machine "C:\HCLOGS314\localmachine.reg"
-reg export HKEY_users "C:\HCLOGS314\\users.reg"
-reg export HKEY_current_config "C:\HCLOGS314\currentconfig.reg"
+regexport
 Write-host "downloading reg files"
 Invoke-WebRequest -uri https://raw.githubusercontent.com/smugraptor27371/Randomtesting/main/telemetry.reg -destinationpath $env:temp/telemetry.reg
 Write-host "applying keys..."
@@ -478,150 +439,133 @@ Write-host "downloading reg files"
 Invoke-WebRequest -uri https://raw.githubusercontent.com/smugraptor27371/Randomtesting/main/suggestions_cortana_ect.reg -destinationpath $env:temp/search.reg
 Write-host "applying keys..."
 reg import $env:temp\search.reg
-
-
-
-            
             break
         }
         2 {
             Write-Host "Telemetry"
-
-  Write-host "backing up registry keys"
-
-$logpathtocheck = "C:\HCLOGS314"
-if (Test-Path $logpathtocheck) {
-    Write-Host "Folder already exists"
-} else {
-    Write-Host "Folder does not exist, creating folder"
-    New-Item -itemtype Directory -path "C:\HCLOGS314"
-
-}
-  
-reg export HKEY_classes_root "C:\HCLOGS314\classes_root"
-reg export HKEY_current_user "C:\HCLOGS314\current_user"
-reg export HKEY_Local_machine "C:\HCLOGS314\localmachine.reg"
-reg export HKEY_users "C:\HCLOGS314\\users.reg"
-reg export HKEY_current_config "C:\HCLOGS314\currentconfig.reg"
-Write-host "downloading reg files"
+regexport
 Invoke-WebRequest -uri https://raw.githubusercontent.com/smugraptor27371/Randomtesting/main/telemetry.reg -destinationpath $env:temp/telemetry.reg
 Write-host "applying keys..."
 reg import $env:temp\telemtry.reg
-            
             break
         }
         3 {
             Write-Host "Suggestions_cortanaect.reg "
-          
-
-Write-host "backing up registry keys"
-
-$logpathtocheck = "C:\HCLOGS314"
-if (Test-Path $logpathtocheck) {
-    Write-Host "Folder already exists"
-} else {
-    Write-Host "Folder does not exist, creating folder"
-    New-Item -itemtype Directory -path "C:\HCLOGS314"
-
-}
-
-reg export HKEY_classes_root "C:\HCLOGS314\classes_root"
-reg export HKEY_current_user "C:\HCLOGS314\current_user"
-reg export HKEY_Local_machine "C:\HCLOGS314\localmachine.reg"
-reg export HKEY_users "C:\HCLOGS314\\users.reg"
-reg export HKEY_current_config "C:\HCLOGS314\currentconfig.reg"
-
+regexport
 Write-host "downloading reg files"
 Invoke-WebRequest -uri https://raw.githubusercontent.com/smugraptor27371/Randomtesting/main/suggestions_cortana_ect.reg -destinationpath $env:temp/search.reg
 Write-host "applying keys..."
 reg import $env:temp\search.reg
-
             break
         }
-       
         4 {
             Write-Host " work in progress"
-          
-
             break
         }
-       
-       
         5 {
             Write-Host "Exit"
-          
-
             return
         }
-       
-       
-       
         default {
             Write-Host "Invalid choice. Please enter 1-5"
         }
     }
 }
-
-
-    Read-Host "Press Enter to continue..."
-
-
     Read-Host "Press Enter to continue..."
 }
 
-function Execute-Option7 {
-    Write-Host "Option 7 selected. Executing corresponding code."
-    # tons of code here
-    Read-Host "Press Enter to continue..."
-}
 
-function Execute-Option8 {
-    Write-Host "Option 8 selected. Executing corresponding code."
-    # tons of code here
-    Read-Host "Press Enter to continue..."
-}
 
-function Execute-Option9 {
-    Write-Host "Option 9 selected. Executing corresponding code."
-    # tons of code here
-    Read-Host "Press Enter to continue..."
-}
-
-function Execute-Option10 {
-    Write-Host "Option 10 selected. Executing corresponding code."
-    # tons of code here
-    Read-Host "Press Enter to continue..."
-}
-
-cls
-
-Do { 
-    cls
-    Show-MainMenu
-    $Select = Read-Host "Select an option and press Enter: "
-    Switch ($Select)
-    {
-        1 { Execute-HCSSD }
-        2 { Execute-HCPFSSD }
-        3 { Execute-AdditionalTools }
-        4 { Execute-ResetUpdates }
-        5 { Execute-Option5 }
-        6 { Execute-Option6 }
-        7 { Execute-Option7 }
-        8 { Execute-Option8 }
-        9 { Execute-Option9 }
-        10 { Execute-Option10 }
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ while ($true) {
+    Write-Host "Select an option:"
+    Write-Host "1. Healthcheck"
+    Write-Host "2. Additional tools"
+    Write-Host "3. Nukedesk"
+    Write-Host "4. Reg changes for speed"
+    Write-Host "5. Exit"
+    $choice = Read-Host "Enter your choice"
+    switch ($choice) {
+        1 {
+            Write-Host "running healthcheck"
+  prep
+  folders_prep
+  start-transcript -Path "C:\HCLOGS314\full_logs\Full_log.txt"
+  regbackup
+  disk_health_check
+  hwmonitor
+  R_kill
+  chkdsk/scan
+  get_pcinfo
+  update_and_run_windows_defender
+  KVRT
+  ADW_malwarebytes
+  runsfc
+  rundism
+  update_common_apps
+  launch_human_apps
+  disable_some_things
+  wiztree
+  webroot
+  hmpro
+  memdump
+  create_overview 
+  Stop-Transcript
+  break
+        }
+        2 {
+            Write-Host "additional tools"
+            aditionaltools
+            Delete-folder
+            break
+        }
+        3 {
+            Write-Host "Nukedesk"
+            nukedesk
+            break
+        }
+       
+        4 {
+            Write-Host "Reg changes for speed"
+            regchanges
+            break
+        }
+       
+        5 {
+            Write-Host "Exit"
+            Write-host "Cleanup"
+            cleanup
+            return
+        }  
+        default {
+            Write-Host "Invalid choice. Please enter 1-5"
+        }
     }
-} While ($Select -ne 11)
-
-Write-host "Stopping HDsentinel"
-Stop-Process -name hdsentinel
-write-host "deleting adw quarantine and logs"
-remove-item -path "C:\AdwCleaner" -Recurse -force
-Write-host "deleting health check logs"
-Remove-item -path "C:\HCLOGS314" -recurse -force
-Write-host "removing %temp%"
-Remove-Item -Path $env:TEMP\* -Force -Recurse -erroraction silentlycontinue
-
-Write-host "wiping PShistory"
-New-Item -Path (Get-PSReadlineOption).HistorySavePath -Force
+}
+    Read-Host "Press Enter to continue..."
+    Write-host "cleaning up"
+    cleanup
+    defrag/trim
