@@ -161,6 +161,7 @@ write-host "$sfcresult"
 
 }
 function rundism{
+$logpath = "C:\HCLOGS314\image_repair_logs"
 dism /online /cleanup-image /restorehealth >> $logpath\dism.txt
 
 }
