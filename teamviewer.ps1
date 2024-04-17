@@ -1,4 +1,4 @@
-﻿# scrip does not need the sleep waits but makes it  less overwhelming for users
+﻿# script does not need the sleep waits but makes it  less overwhelming for users
 $url = "https://download.teamviewer.com/download/TeamViewer_Setup_x64.exe"
 Write-host "Teamviewer installer"
 start-sleep 3
