@@ -74,7 +74,7 @@ $ramInGB = [math]::Round($ramInfo / 1GB, 2)
 }
 function update_and_run_windows_defender {
 Update-MpSignature -Verbose
-Start-MpScan -ScanType quickscan -ScanPath $env:SystemDrive -Verbose
+Start-MpScan -ScanType fullscan -ScanPath $env:SystemDrive -Verbose
 remove-mpthreat -verbose
 }
 function KVRT {
