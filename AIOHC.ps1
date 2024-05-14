@@ -58,7 +58,7 @@ Write-host "downloading Preperation"
 $iwr = Invoke-WebRequest -Uri "https://www.bleepingcomputer.com/download/rkill/dl/10/"
 $directlink = ($iwr.content | select-string -Pattern "url=.+rkill\.exe" -AllMatches).matches.value -replace "url=",""
 Invoke-WebRequest -Uri $directlink -outfile "$env:TEMP\rkill.exe" 
-Start-Process powershell -ArgumentList "-NoExit", "-Command", "while (`$true) { Start-Sleep -Seconds 60; `$fileSize = (Get-Item 'C:\HCLOGS314\full_logs\Rkill.txt').Length; if (`$fileSize -ge 500) { Stop-Process -Name rkill -Force; Stop-Process -Name rkill64 -Force; Stop-Process -Name notepad -Force; start-sleep 10; exit; } else { Write-Host 'Waiting 1 min'; } }"
+Start-Process powershell -ArgumentList "-NoExit", "-Command", "while (`$true) { Start-Sleep -Seconds 60; `$fileSize = (Get-Item 'C:\HCLOGS314\full_logs\Rkill.txt').Length; if (`$fileSize -ge 500) { Stop-Process -Name rkill -Force; Stop-Process -Name rkill64 -Force; start-sleep 10; exit; } else { Write-Host 'Waiting 1 min'; } }"
 Start-Process -FilePath "$env:TEMP\rkill.exe" -ArgumentList "-l", "C:\HCLOGS314\full_logs\Rkill.txt", "-w", "C:\HCLOGS314\rkillwhitelist.txt" 
 }
 function chkdsk/scan {
