@@ -526,7 +526,7 @@ reg import $env:temp\search.reg
   ADW_malwarebytes
   runsfc
   rundism
-  update_common_apps
+  #update_common_apps
   launch_human_apps
   disable_some_things
   wiztree
