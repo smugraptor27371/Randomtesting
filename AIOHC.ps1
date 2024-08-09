@@ -1,11 +1,11 @@
 #Requires -runasadministrator
 
-
 function prep {
 $disk = Get-PSDrive C | Select-Object -ExpandProperty Free
 $free_space_gb = $disk / 1GB
-if ($free_space_gb -lt 5) {
-    Write-Host "Less than 5GB of free disk space available."
+if ($free_space_gb -lt 15) {
+    Write-Host "Less than 15GB of free disk space available."
+    Write-Host "Stopping script due to low space"
     stop-transcript
     break
 } else {
@@ -22,6 +22,8 @@ new-item -path "C:\HCLOGS314\regback" -itemtype directory
 new-item -path "C:\HCLOGS314\full_logs" -itemtype directory
 new-item -path "C:\HCLOGS314\image_repair_logs" -itemtype directory
 new-item -path "C:\HCLOGS314\overview.txt"
+new-item -path "C:\HCLOGS314\Variabledump.txt"
+new-item -path "C:\HCLOGS314\globVariabledump.txt"
 if (Test-Path -Path 'C:\AdwCleaner') {
 Get-ChildItem 'C:\AdwCleaner\Logs\*.txt' | remove-item -force 
 }
@@ -69,11 +71,11 @@ foreach ($item in $itemsToDelete) {
 function regbackup {
 try {
     Write-host "Backing up registry"
-    reg export HKEY_classes_root C:\HCLOGS314\regback\classesroot.reg
-    reg export HKEY_current_user C:\HCLOGS314\regback\currentuser.reg
-    reg export HKEY_Local_machine C:\HCLOGS314\regback\localmachine.reg
-    reg export HKEY_users C:\HCLOGS314\regback\users.reg
-    reg export HKEY_current_config C:\HCLOGS314\regback\currentconfig.reg
+    reg export HKEY_classes_root C:\HCLOGS314\regback\classesroot.reg 1> $null
+    reg export HKEY_current_user C:\HCLOGS314\regback\currentuser.reg 1>$null
+    reg export HKEY_Local_machine C:\HCLOGS314\regback\localmachine.reg 1>$null
+    reg export HKEY_users C:\HCLOGS314\regback\users.reg 1>$null
+    reg export HKEY_current_config C:\HCLOGS314\regback\currentconfig.reg 1>$null
     Write-Host "Registry backup successful"
 } catch {
     Write-Host "Registry backup unsuccessful"
@@ -114,34 +116,170 @@ chkdsk /scan /perf >> C:\HCLOGS314\full_logs\chkdsk.txt
 }
 
 function get_pcinfo {
-$cpuInfo = Get-WmiObject -Class Win32_Processor | Select-Object -ExpandProperty Name
-"CPU = $cpuInfo" | Out-File -FilePath "C:\HCLOGS314\overview.txt"
-$ramInfo = Get-WmiObject -Class Win32_ComputerSystem | Select-Object -ExpandProperty TotalPhysicalMemory
-$ramInGB = [math]::Round($ramInfo / 1GB, 2)
-"RAM = $ramInGB GB" | Out-File -FilePath "C:\HCLOGS314\overview.txt"
+
+$Global:overviewpath = "C:\HCLOGS314\overview.txt"
+$keypathCpu = "HKLM:\HARDWARE\DESCRIPTION\System\CentralProcessor\0"
+$keypathMobo = "HKLM:\HARDWARE\DESCRIPTION\System\BIOS"
+$Global:overviewpath = "C:\HCLOGS314\overview.txt"  # Define your output file path
+
+add-content -path $Global:overviewpath -value "============================================================= Sys Info"
+
+#MOBO
+$FullMoboInfo = Get-ItemProperty -Path $keypathMobo
+
+$BaseBoardProduct = $FullMoboInfo.BaseBoardProduct
+$BaseBoardVersion = $FullMoboInfo.BaseBoardVersion
+$BIOSVersion = $FullMoboInfo.BIOSVersion
+$BIOSReleaseDate = $FullMoboInfo.BIOSReleaseDate
+$SystemManufacturer = $FullMoboInfo.SystemManufacturer
+$SystemProductName = $FullMoboInfo.SystemProductName
+
+Add-Content -Path $Global:overviewpath -Value "Motherboard Product Number = $BaseBoardProduct"
+Add-Content -Path $Global:overviewpath -Value "Motherboard Product Version = $BaseBoardVersion"
+Add-Content -Path $Global:overviewpath -Value "BIOS Version = $BIOSVersion"
+Add-Content -Path $Global:overviewpath -Value "BIOS Release Date = $BIOSReleaseDate"
+Add-Content -Path $Global:overviewpath -Value "Motherboard/Laptop Manufacturer = $SystemManufacturer"
+Add-Content -Path $Global:overviewpath -Value "Laptop Product Number = $SystemProductName (In some machines this may be the same as the motherboard's product number)"
+
+write-host "Starting DXDIAG to get system info"
+$dxdiagOutputPath = "C:\HCLOGS314\full_logs\DXDiag.xml"
+Start-Process -FilePath "dxdiag.exe" -ArgumentList "/X $dxdiagOutputPath" -NoNewWindow -Wait
+
+$totalRamNode = Select-Xml -Path $dxdiagOutputPath -XPath "//SystemInformation/Memory"
+$availableOsMemoryNode = Select-Xml -Path $dxdiagOutputPath -XPath "//SystemInformation/AvaliableOSMem"
+$displayDeviceNodes = Select-Xml -Path $dxdiagOutputPath -XPath "//DisplayDevice"
+$Tabissues = Select-Xml -Path $dxdiagOutputPath -XPath "//DxDiagNotes"
+
+#CPU
+$FullProcessorInfo = Get-ItemProperty -Path $keypathCpu
+$CpuInfo = $FullProcessorInfo.ProcessorNameString
+Add-Content -Path $Global:overviewpath -Value "CPU = $CpuInfo"
+
+Add-Content -Path $Global:overviewpath -Value ""
+Add-Content -Path $Global:overviewpath -Value "Total RAM: $($totalRamNode.Node.InnerXml)"
+Add-Content -Path $Global:overviewpath -Value "Available OS Memory: $($availableOsMemoryNode.Node.InnerXml)"
+Add-Content -Path $Global:overviewpath -Value ""
+Add-Content -Path $Global:overviewpath -Value "Display GPU: $($Tabissues.Node.DisplayTab[0])"
+Add-Content -Path $Global:overviewpath -Value "Render GPU: $($Tabissues.Node.DisplayTab[1])"
+Add-Content -Path $Global:overviewpath -Value "Sound: $($Tabissues.Node.SoundTab)"
+Add-Content -Path $Global:overviewpath -Value "Input: $($Tabissues.Node.InputTab)"
+
+foreach ($node in $displayDeviceNodes) {
+    $device = $node.Node
+    Add-Content -Path $Global:overviewpath -Value "----------------------"
+    Add-Content -Path $Global:overviewpath -Value "Device name: $($device.Cardname)"
+    Add-Content -Path $Global:overviewpath -Value "Manufacturer: $($device.Manufacturer)"
+    Add-Content -Path $Global:overviewpath -Value "Chip Type: $($device.ChipType)"
+    Add-Content -Path $Global:overviewpath -Value "Dedicated Memory: $($device.DedicatedMemory)"
+    Add-Content -Path $Global:overviewpath -Value "Shared Memory: $($device.SharedMemory)"
+    Add-Content -Path $Global:overviewpath -Value "Device Problem Code: $($device.DeviceProblemCode)"
+    Add-Content -Path $Global:overviewpath -Value "WHQL Logo: $($device.DriverWHQLLogo)"
+    Add-Content -Path $Global:overviewpath -Value "----------------------"
+}
+add-content -path $Global:overviewpath -value "============================================================= End Info"
 }
 
 function Check-WindowsDefenderStatus {
-    $Global:defenderenabled = $null
-    $registryPath = "HKLM:\SOFTWARE\Policies\Microsoft\Windows Defender"
-    $registryKey = "DisableAntiSpyware"
-    if (Test-Path "$registryPath\$registryKey") {
-        $disableAntiSpyware = Get-ItemProperty -Path $registryPath -Name $registryKey       
-        if ($disableAntiSpyware.$registryKey -eq 1) {
-            Write-Output "Windows Defender is disabled."
-            $Global:defenderenabled = "false"
-        } else {
-            Write-Output "Windows Defender is enabled."
-            $Global:defenderenabled = "true"
-        }
-    } else {
-        Write-Output "Windows Defender is enabled."
-        $Global:defenderenabled = "true"
-    }
+$overviewpath = "C:\HCLOGS314\overview.txt"
+$defenderdisabledoutput = "Get-mpstatus indicates windows defender is disabled. This is usually because of third party antivirus. Skipping scan to prevent error message"
+$defenderenabledoutput =  "Get-mpstatus indicates windows defender is enabled. Scan was attempted"
+$defenderinvalidoutput =  "Get-MPStatus returned something other than true or false; Skipped the Defender definition update, scan and threat removal"
+$Global:DefenderStatus = $null
+
+$Global:DefenderStatus = Get-MpComputerStatus
+
+if ($Global:DefenderStatus.AntispywareEnabled -eq $true) {
+Write-host "Defender is Enabled"
+add-content -Path "$overviewpath" -value "$defenderenabledoutput"
+update-and-run-windows-defender
+}elseif ($Global:DefenderStatus.AntispywareEnabled -eq $false){
+Write-host "Defender is Disabled"
+add-content -Path "$overviewpath" -value "$defenderdisabledoutput"
+}else{
+Write-Warning "Get-MPStatus returned something other than true or false; Skipping defender definition update and scan"
+add-content -Path "$overviewpath" -value "$defenderinvalidoutput"
+}
+}
+
+function update-and-run-windows-defender {
+$Global:Defenderupdatestatus = $null
+$Global:Defenderupdateworked = $null
+$Global:defenderUpdateerror = $null
+
+
+$Global:DefenderscanStatus = $null
+$Global:DefenderscanWorked = $null
+$Global:defenderscanerror = $null
+
+
+$Global:defenderthreatremovalstatus = $null
+$Global:DefenderThreatremovalWorked = $null
+$Global:defenderthreatremovalerror = $null
+
+try {
+    $Global:Defenderupdatestatus = Update-MpSignature -Verbose 4>&1 
+    Write-Host "$Global:Defenderupdatestatus"
+    $Global:Defenderupdateworked = $true
+} catch {
+    $Global:defenderUpdateerror = $_.Exception.Message
+    Write-Host "$Global:Defenderupdatestatus"
+    Write-Host "Updating Windows Defender failed"
+    $Global:DefenderUpdateWorked = $false
 }
 
 
+try {
+    $Global:DefenderscanStatus = Start-MpScan -ScanType $Global:Defenderscantype -ScanPath $env:SystemDrive 
+    Write-host "Defender Scan Completed"
+    $Global:DefenderscanWorked = $true
+} catch {
+    $global:defenderscanerror = $_.Exception.Message
+    Write-Host "$Global:Defenderscanstatus"
+    Write-Host "Scan with Windows Defender failed"
+    $Global:DefenderscanWorked = $false
+}
 
+try {
+    $global:defenderthreatremovalstatus = Remove-MpThreat -Verbose 4>&1 
+    Write-Host "$global:defenderthreatremovalstatus"
+    $Global:DefenderThreatremovalWorked = $true
+} catch {
+    $global:defenderthreatremovalerror = $_.Exception.Message
+    Write-Host "$global:defenderthreatremovalstatus"
+    Write-Host "Threat removal with Windows Defender failed"
+    $Global:DefenderThreatremovalWorked = $false
+}
+testing
+windows-defender-overview
+}
+
+Function windows-defender-overview {
+ $overviewpath = "C:\HCLOGS314\overview.txt"
+ If($global:Defenderupdateworked -eq $false){
+ add-content -Path $overviewpath -value "Windows Defender Definitions update    = $Global:Defenderupdateerror"
+ }elseif ($global:Defenderupdateworked -eq $true){
+ add-content -path "$overviewpath" -value "Windows Defender Definitions update  = $Global:Defenderupdatestatus"
+ }else{
+ add-content -path "$overviewpath" -value "Windows Defender Definitions update  = Error (DefenderUpdateWorked global variable was not true or false)"
+ }
+ 
+ If($global:Defenderscanworked -eq $false){
+ add-content -Path "$overviewpath" -value "Windows Defender scan                = $Global:Defenderscanerror"
+ }elseif ($global:Defenderscanworked -eq $true){
+ add-content -path "$overviewpath" -value "Windows Defender scan                = Completed"
+ }else{
+ add-content -path "$overviewpath" -value "Windows Defender scan                = Error (DefenderScanWorked global variable was not true or false)"
+ }
+
+If($global:Defenderthreatremovalworked -eq $false){
+ add-content -Path "$overviewpath" -value "Windows Defender Threat removal      = $Global:Defenderthreatremovalerror"
+ }elseif ($global:DefenderThreatremovalworked -eq $true){
+ add-content -path "$overviewpath" -value "Windows Defender Threat removal      = $global:Defenderupdatestatus"
+ }else{
+ add-content -path "$overviewpath" -value "Windows Defender Threat removal      = Error (DefenderThreatRemovalWorked global variable was not true or false)"
+ }
+ testing
+ }
 
 function DefenderScanType {
 $no = @("Q", "q")
@@ -159,28 +297,6 @@ if($no -contains $answ) #quick
 elseif($yes -contains $answ) #full
 {
  $Global:Defenderscantype = "Fullscan"  
-}
-}
-
-
-
-
-Function update_and_run_windows_defender {
-$overviewpath = "C:\HCLOGS314\overview.txt"
-$defenderdisabledoutput = "Registry indicates windows defender is disabled. This is usually because of third party antivirus. Skipping scan to prevent error message"
-$defenderenabledoutput =  "Registry indicates windows defender is enabled. Scan was attempted"
-$defenderinvalidvalue = "Value found in disableantispyware was not 0 or 1. Investigate manually"
-if ($global:defenderenabled -eq "true"){
-Update-MpSignature -Verbose
-Start-MpScan -ScanType $Global:Defenderscantype -ScanPath $env:SystemDrive -Verbose
-remove-mpthreat -verbose
-add-content -path $overviewpath -value $defenderenabledoutput
-}elseif ($global:defenderenabled -eq "false"){
-Write-host "skipping defender scan due to 3rd party antivirus"
-add-content -path $overviewpath -value $defenderdisabledoutput
-}else{
-Write-host "you should not see this. It indicates that the registry key disableantispyware retuned a value other than 0 or 1."
-add-content -path $overviewpath -value $defenderinvalidvalue
 }
 }
 
@@ -218,6 +334,7 @@ else {
 }
 
 function runsfc{
+Write-host "running sfc"
 $logpath = "C:\HCLOGS314\image_repair_logs"
 sfc /scannow >> "$logpath\sfc.txt"
     start-sleep 5
@@ -245,9 +362,11 @@ Add-content -path $overviewpath -value $repairservicetext
 }else{
 add-content -path $overviewpath -value "error check full sfc log" 
 }
+testing
 }
 
 function rundism{
+Write-host "running DISM"
 $logpath = "C:\HCLOGS314\image_repair_logs"
 dism /online /cleanup-image /restorehealth >> $logpath\dism.txt
 }
@@ -336,6 +455,7 @@ if (Test-Path -Path "C:\HCLOGS314\full_logs\Rkill.txt" ) {
 } else { 
     add-content -path "C:\HCLOGS314\overview.txt" -value Rkill = Log not found check full logs
 }
+#CHKDSK
 if (Test-Path -Path "C:\HCLOGS314\full_logs\chkdsk.txt" ) {
                 if (Get-Content -Path "C:\HCLOGS314\full_logs\chkdsk.txt" | Select-String -Pattern "found no problems") {
                  add-content -path "C:\HCLOGS314\overview.txt" -value "Disk corruption = false"
@@ -345,16 +465,19 @@ if (Test-Path -Path "C:\HCLOGS314\full_logs\chkdsk.txt" ) {
 } else {
     add-content -path "C:\HCLOGS314\overview.txt" -value "Disk corruption = Log not found check full logs"
 }
+#CHKDSK
+#KVRT
 if (Test-Path -Path "C:\HCLOGS314\full_logs\kvrt.txt" ) {   
     if (Get-Content "C:\HCLOGS314\full_logs\kvrt.txt" | Select-String -Pattern "Detected: ([1-9]\d*)") {
    add-content -path "C:\HCLOGS314\overview.txt" -value "KVRT = Issues found check log"
     }else{
     add-content -path "C:\HCLOGS314\overview.txt" -value "KVRT = No Issues found "
     }
-} else {
+}else {
     add-content -path "C:\HCLOGS314\overview.txt" -value "KVRT = Log not found check full log"
 }
-
+#KVRT
+#ADW
 if (Test-Path -Path "C:\HCLOGS314\full_logs\adw.txt" ) {
 
    if (Get-Content "C:\HCLOGS314\full_logs\adw.txt" | Select-String -Pattern "Total threat items found: ([1-9]\d*)") {
@@ -363,8 +486,10 @@ if (Test-Path -Path "C:\HCLOGS314\full_logs\adw.txt" ) {
    add-content -path "C:\HCLOGS314\overview.txt" -value "ADW = Found no items"
    }
 } else {
-    add-content -path "C:\HCLOGS314\overview.txt" -value "ADW = Log not found check full logs"
+    add-content -path "C:\HCLOGS314\overview.txt" -value "ADW = Log is not as expected check full logs"
 }
+#ADW
+#RebootOverride
 if ($global:wasoverridden -eq "true"){
    add-content -path "C:\HCLOGS314\overview.txt" -value "Pending reboot = $global:pendingreason"
    add-content -path "C:\HCLOGS314\overview.txt" -value "Was reboot detection overridden = $global:wasoverridden"
@@ -375,6 +500,8 @@ if ($global:wasoverridden -eq "true"){
    add-content -path "C:\HCLOGS314\overview.txt" -value "Pending reboot = script error"
    add-content -path "C:\HCLOGS314\overview.txt" -value "Was reboot detection overridden = script error"
 }
+#RebootOverride
+#Uptime
 $uptime = (Get-Counter '\System\System Up Time').CounterSamples[0].CookedValue
 $uptime_timespan = [TimeSpan]::FromSeconds($uptime)
 Write-Host "Uptime: $($uptime_timespan.Days) days, $($uptime_timespan.Hours) hours, $($uptime_timespan.Minutes) minutes, $($uptime_timespan.Seconds) seconds"
@@ -385,7 +512,7 @@ add-content -path "C:\HCLOGS314\overview.txt" -value "System uptime is greater t
 }elseif($uptime_timespan.Days -lt 2){
 add-content -path "C:\HCLOGS314\overview.txt" -value "System uptime is less than 2 days - This is good"
 }
-
+#Uptime
 #Secureboot detection
 $secureboot = Confirm-SecureBootUEFI
 $securebootdisabled = "Secureboot = Supported but Not Enabled"
@@ -404,10 +531,10 @@ $securebootlog = $securebootissues
 }
 Add-content -path "C:\HCLOGS314\overview.txt" -value "$securebootlog"
 #End of secureboot detection
-
+testing
 }
 
-function cleanup{
+function cleanup {
  $processes = Get-Process | Where-Object { $_.Name -ilike "*hdsentinel*" }
     if ($processes) {
         Write-Host "HDSentinel is running. Stopping the process..."
@@ -633,6 +760,7 @@ function Check-PendingReboot {
     } else {
         Write-host "No reboot is pending, continuing."
     }
+testing
 }
 
 function override-check {
@@ -653,6 +781,7 @@ function override-check {
  Write-host "even though this output indicates a completly unrecognised reboot reason its probably fine to override and just means i cant code"
  override-pendingreboot
 }
+testing
 }
 
 function override-pendingreboot {
@@ -674,133 +803,140 @@ elseif($yes -contains $answ)
     $global:wasoverridden = "true"
 }
 }
+
 function open-logs{
 read-host "Any Button to continue and open logs"
 Explorer.exe C:\HCLOGS314
 Read-host "Any Button to proceed back to main menu (after checking logs and correcting any issues)"
 } 
 
+function Default-folder-zip {
+$no = @("no","nah","nope","n")
+$yes = @("yes","yup","yeah","y")
+do
+{
+    $answ = read-host "Use Default Zip location?"
+}
+until($no -contains $answ -or $yes -contains $answ)
 
-
-
-
-
-Function Bitlocker-auto-detect {
-$Global:BitlockerCheck = 0
-
-function testkey-ade {
-        $RegistryPath = 'HKLM:\SYSTEM\CurrentControlSet\Control\BitLocker'
-        $Name         = 'PreventAutomaticDeviceEncryption'
-        $Value        = '1'
-try {
-    $key = Get-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\BitLocker"
-    if ($key -and $key.PSObject.Properties.Name -contains "PreventAutomaticDeviceEncryption") {
-        Write-host "PreventAutomaticDeviceEncryption already exists setting value to 1"
-        set-ItemProperty -Path $RegistryPath -Name $Name -Value $Value -Force 
-        $Global:Bitlockercheck = 2
-    } else {
-        Write-host "creating PreventAutomaticDeviceEncryption subkey and setting value to 1"
-        New-ItemProperty -Path $RegistryPath -Name $Name -Value $Value -PropertyType DWORD -Force 
-        $Global:BitlockerCheck = 2 
-    }
-} catch {
-    Write-Error -Category ReadError -Message "BitLocker key exists in the registry, but checking for the presence of 'PreventAutomaticDeviceEncryption' failed."
-    $Global:BitlockerCheck = 100
+if($no -contains $answ)
+{
+    Pick-folder
+}
+elseif($yes -contains $answ)
+{
+    Write-host "Using Default location C:\HCAIO.zip"
 }
 }
-$ADE = Test-Path -Path "HKLM:\SYSTEM\CurrentControlSet\Control\BitLocker" -PathType Container
-if (-not $ade ){
-Write-host "bitlocker main regkey not present (need more investigating to know what this means"
-Write-Error -category ResourceUnavailable -Message "Bitlocker Key within HKLM:\SYSTEM\CurrentControlSet\Control\ is missing (do not fix this without help unless you think this message is stupid becasue you know what you are doing)"
-$Global:BitlockerCheck = 3
-}else{
-Write-host "bitlocker Main regkey Present"
-testkey-ADE
+
+function pick-folder {
+$global:selectedfolder = $null
+Add-Type -AssemblyName System.Windows.Forms
+$folderBrowserDialog = New-Object System.Windows.Forms.FolderBrowserDialog
+$folderBrowserDialog.RootFolder = [System.Environment+SpecialFolder]::Desktop
+$folderBrowserDialog.Description = "Select a folder For Logs zip file."
+$form = New-Object System.Windows.Forms.Form
+$form.TopMost = $true
+if ($folderBrowserDialog.ShowDialog($form) -eq [System.Windows.Forms.DialogResult]::OK) {
+    $Global:selectedFolder = $folderBrowserDialog.SelectedPath
+    Write-Output "Selected folder: $Global:selectedFolder"
+} else {
+    $global:selectedfolder = "C:\"
+    Write-Output "No folder selected"
 }
+$form.Dispose()
+testing
+}
+
+function testing {
+
+$excluded = @(
+    "args",
+    "ConsoleFileName",
+    "ExecutionContext",
+    "false",
+    "HOME",
+    "Host",
+    "input",
+    "MaximumAliasCount",
+    "MaximumDriveCount",
+    "MaximumErrorCount",
+    "MaximumFunctionCount",
+    "MaximumVariableCount",
+    "MyInvocation",
+    "null",
+    "PID",
+    "PSBoundParameters",
+    "PSCommandPath",
+    "PSCulture",
+    "PSEdition",
+    "PSHOME",
+    "PSScriptRoot",
+    "PSUICulture",
+    "PSVersionTable",
+    "ShellId",
+    "excluded",
+    "true",
+    "?"
+)
+$Variabledump = "C:\HCLOGS314\Variabledump.txt"
+$variables = Get-Variable -Scope 1 -Exclude $excluded
+$outputContent = $variables | ForEach-Object {
+    "$($_.Name) = $($_.Value)"
+}
+Add-Content -Path $variabledump -Value $outputContent
+}
+
+
+function testing-globalscope {
+$globvardump = "C:\HCLOGS314\GlobVariabledump.txt"
+$variables = Get-Variable -Scope global
+$outputContent = $variables | ForEach-Object {
+    "$($_.Name) = $($_.Value)"
+}
+Add-Content -Path $globvardump -Value $outputContent
+}
+
+
+function zip-logs {
+Compress-Archive -path "C:\HCLOGS314" -DestinationPath "$Global:selectedfolder\!ZippedHCLOGS.zip"    #! mark is to put it at top of files for ease
+} 
+
+Function Bitlocker-autoencrypt{
+
+$KeyPath = "HKLM:\SYSTEM\CurrentControlSet\Control\BitLocker\"
+$ValueName = "PreventAutomaticDeviceEncryption"
+$ValueData = 1
+
+try {Set-ItemProperty -path "$keypath" -name "$ValueName" -value "$ValueData" -type Dword
+$Global:preventautoencrypt = "Success"
+}
+Catch{$Global:preventautoencrypt = $error
+write-host "Error occurred trying to set registry key/value full error in log."}
+testing
 }
 
 Function Bitlocker-Overview {
-$regeditresult = $null
-$skipped = 0 
-$bitlockerstatus = get-bitlockervolume | select-object  Mountpoint, VolumeType, VolumeStatus, EncryptionPercentage, CapacityGB
+    $bitlockerstatus = Get-BitLockerVolume | Select-Object MountPoint, VolumeType, VolumeStatus, EncryptionPercentage, CapacityGB
 
+    $regeditresult = $null
+    $skipped = "No"
 
-#read-host promt setup
-$lines = @(
-   "---------------------------------------------------------------------------------------------------------" 
-    " "
-    "BitLocker is enabled or encryption is currently in progress."
-    " "
-    "It is not recommended to change the automatic encryption registry key while BitLocker is active."
-    " "
-    "To proceed with the registry edit, please disable BitLocker and wait for decryption to fully complete."
-    " "
-   "---------------------------------------------------------------------------------------------------------" 
-    "Type y and hit enter to continue with the registry edit."
-    " "
-    "Type n and hit enter to skip the registry edit."
-    " "
-)
-$formattedText = $lines -join "`n"
-#end of read-host prompt setup
+    if ($bitlockerstatus | Where-Object { $_.VolumeStatus -eq 'FullyEncrypted' -or $_.VolumeStatus -eq 'EncryptionInProgress' -or $_.EncryptionPercentage -gt 0 }) {
+        Write-Host "BitLocker is enabled or encryption is currently in progress."
+        Write-Host "Proceeding with registry edit."
 
-if ($bitlockerstatus | Where-Object { $_.VolumeStatus -eq 'FullyEncrypted' -or $_.VolumeStatus -eq 'EncryptionInProgress' -or $_.EncryptionPercentage -gt 0 }) {
-    
-     $no = @("no","nah","N","n")
-     $yes = @("yes","yup","Y","y")
+    } else {
+        Write-Output "No volumes with BitLocker enabled or encryption in progress."
+    }
 
-     do
-     {
-     $answ = read-host "$formattedText"
-     }
-     until($no -contains $answ -or $yes -contains $answ)
-
-     if($no -contains $answ)
-     {
-     Write-host "Skipped Bitlocker Auto encrypt REG edit"
-     $skipped = "Yes"
-     }
-     elseif($yes -contains $answ)
-     {
-     Write-host "Doing Auto Encrypt Reg edit"
-     $skipped = "no"
-     Bitlocker-auto-detect
-     }
-
-
-
-
-} else {
-
-    Write-Output "No volumes with BitLocker enabled or encryption in progress."
+    $output = $bitlockerstatus | Format-Table -AutoSize | Out-String
+    Add-Content -Path "C:\HCLOGS314\overview.txt" -Value "---Bitlocker Stuff---"
+    Add-Content -Path "C:\HCLOGS314\overview.txt" -Value "Registry edit result = $Global:preventautoencrypt"
+    $output | Add-Content -Path "C:\HCLOGS314\overview.txt"
+    Add-Content -Path "C:\HCLOGS314\overview.txt" -Value "---End of Bitlocker Stuff---"
+testing
 }
-
-if ($Global:bitlockercheck -eq 2){
-$regeditresult = "Success"
-}elseif ($Global:bitlockercheck -eq 100){
-$regeditresult = "ERROR : Unable to check if Subkey is Present (read error)"
-}elseif ($Global:bitlockercheck -eq 3){
-$regeditresult = "ERROR : Bitlocker REG key not present (unkown error lol)"
-}else{
-$regeditresult = "ERROR: Value of $Global:bitlocker was not 2, 3 or 100 pls zip logs and send them"
-}
-$output = $bitlockerstatus | Format-Table -AutoSize | Out-String
-
-add-content -path "C:\HCLOGS314\overview.txt" -value "---Bitlocker Stuff---"
-#add-content -path "C:\HCLOGS314\overview.txt" -Value "Bitlocker Auto encrypt reg edit skipped = $Skipped"
-if ($skipped -eq "no"){
-Add-content -path "C:\HCLOGS314\overview.txt" -Value "Registry edit result = $regeditresult"
-}
-$output | add-content -Path "C:\HCLOGS314\overview.txt"
-
-add-content -path "C:\HCLOGS314\overview.txt" -value "---End of Bitlocker Stuff---"
-
-}
-
-
-
-
-
 
 
 
@@ -810,7 +946,8 @@ add-content -path "C:\HCLOGS314\overview.txt" -value "---End of Bitlocker Stuff-
     Write-Host "2. Additional tools"
     Write-Host "3. Nukedesk"
     Write-Host "4. Reg changes for speed"
-    Write-Host "5. Exit"
+    Write-Host "5. Zip Logs"
+    Write-host "6. Exit"
     $choice = Read-Host "Enter your choice"
     switch ($choice) {
         1 {
@@ -827,7 +964,6 @@ add-content -path "C:\HCLOGS314\overview.txt" -value "---End of Bitlocker Stuff-
               chkdsk/scan
               get_pcinfo
               Check-WindowsDefenderStatus
-              update_and_run_windows_defender
               KVRT
               ADW_malwarebytes
               runsfc
@@ -840,8 +976,9 @@ add-content -path "C:\HCLOGS314\overview.txt" -value "---End of Bitlocker Stuff-
               hmpro
               memdump
               create_overview 
-              #Bitlocker-auto-detect
+              Bitlocker-autoencrypt
               Bitlocker-Overview
+              testing-globalscope
               Open-logs
               Stop-Transcript
             break
@@ -865,13 +1002,22 @@ add-content -path "C:\HCLOGS314\overview.txt" -value "---End of Bitlocker Stuff-
         }
        
         5 {
+            test-path -path "C:\HCLOGS314" 
+            if (test-path -path "C:\HCLOGS314"){
+            default-folder-zip
+            zip-logs
+            }else { 
+            Write-host "could not find Logs (The folder is created at the start of option 1)"
+            }
+        }
+        6{
             Write-Host "Exit"
             Write-host "Cleanup"
             cleanup
             return
         }  
         default {
-            Write-Host "Invalid choice. Please enter 1-5"
+            Write-Host "Invalid choice. Please enter 1-6"
         }
     }
 }
