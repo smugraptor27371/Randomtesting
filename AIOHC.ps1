@@ -71,11 +71,17 @@ foreach ($item in $itemsToDelete) {
 function regbackup {
 try {
     Write-host "Backing up registry"
+    Write-progress -Activity "Backing up registry" -id "1" -PercentComplete 0 -status "ClassesRoot"
     reg export HKEY_classes_root C:\HCLOGS314\regback\classesroot.reg 1> $null
+    Write-progress -Activity "Backing up registry" -id "1" -PercentComplete 20 -status "Current user"
     reg export HKEY_current_user C:\HCLOGS314\regback\currentuser.reg 1>$null
+    Write-progress -Activity "Backing up registry" -id "1" -PercentComplete 40 -status "localMachine"
     reg export HKEY_Local_machine C:\HCLOGS314\regback\localmachine.reg 1>$null
+    Write-progress -Activity "Backing up registry" -id "1" -PercentComplete 60 -status "Users"
     reg export HKEY_users C:\HCLOGS314\regback\users.reg 1>$null
+    Write-progress -Activity "Backing up registry" -id "1" -PercentComplete 80 -status "Current config"
     reg export HKEY_current_config C:\HCLOGS314\regback\currentconfig.reg 1>$null
+    Write-progress -Activity "Backing up registry" -id "1" -PercentComplete 100
     Write-Host "Registry backup successful"
 } catch {
     Write-Host "Registry backup unsuccessful"
