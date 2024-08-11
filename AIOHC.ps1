@@ -82,6 +82,7 @@ try {
     Write-progress -Activity "Backing up registry" -id "1" -PercentComplete 80 -status "Current config"
     reg export HKEY_current_config C:\HCLOGS314\regback\currentconfig.reg 1>$null
     Write-progress -Activity "Backing up registry" -id "1" -PercentComplete 100
+    Write-progress -Activity "Backing up registry" -id "1" -Complete
     Write-Host "Registry backup successful"
 } catch {
     Write-Host "Registry backup unsuccessful"
