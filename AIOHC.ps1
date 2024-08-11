@@ -812,9 +812,9 @@ elseif($yes -contains $answ)
 }
 
 function open-logs{
-read-host "Any Button to continue and open logs"
+read-host "Enter to continue and open logs"
 Explorer.exe C:\HCLOGS314
-Read-host "Any Button to proceed back to main menu (after checking logs and correcting any issues)"
+Read-host "Enter to proceed back to main menu (after checking logs and correcting any issues)"
 } 
 
 function Default-folder-zip {
