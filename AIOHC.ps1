@@ -1,9 +1,9 @@
 #Requires -runasadministrator
 
 #paramaters/arguments
-param(
-    [switch]$bypassdrive
-)
+#param(
+    #[switch]$bypassdrive
+#)
 
 
 
@@ -982,11 +982,11 @@ break
               folders_prep
               start-transcript -Path "C:\HCLOGS314\full_logs\Full_log.txt"
               #ssd detect
-              if (!$bypassdrive){
-              diskcompat
-              }else{
-              Write-host "Bypassing disk type check, good luck"
-              }
+              #if (!$bypassdrive){
+              #diskcompat
+              #}else{
+              #Write-host "Bypassing disk type check, good luck"
+              #}
               #ssd detect
               check-pendingreboot
               DefenderScanType
