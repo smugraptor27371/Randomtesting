@@ -1,5 +1,12 @@
 #Requires -runasadministrator
 
+#paramaters/arguments
+param(
+    [switch]$bypassdrive
+)
+
+
+
 function prep {
 $disk = Get-PSDrive C | Select-Object -ExpandProperty Free
 $free_space_gb = $disk / 1GB
@@ -82,7 +89,6 @@ try {
     Write-progress -Activity "Backing up registry" -id "1" -PercentComplete 80 -status "Current config"
     reg export HKEY_current_config C:\HCLOGS314\regback\currentconfig.reg 1>$null
     Write-progress -Activity "Backing up registry" -id "1" -PercentComplete 100
-    Write-progress -Activity "Backing up registry" -id "1" -Complete
     Write-Host "Registry backup successful"
 } catch {
     Write-Host "Registry backup unsuccessful"
@@ -812,9 +818,9 @@ elseif($yes -contains $answ)
 }
 
 function open-logs{
-read-host "Enter to continue and open logs"
+read-host "Any Button to continue and open logs"
 Explorer.exe C:\HCLOGS314
-Read-host "Enter to proceed back to main menu (after checking logs and correcting any issues)"
+Read-host "Any Button to proceed back to main menu (after checking logs and correcting any issues)"
 } 
 
 function Default-folder-zip {
@@ -945,6 +951,19 @@ Function Bitlocker-Overview {
 testing
 }
 
+#ssd detection
+function diskcompat{
+$systempart = $env:SystemDrive.TrimEnd(':')
+$systemDiskNumber = (Get-Partition | Where-Object { $_.DriveLetter -eq $systempart }).DiskNumber
+$systemDisk = $allDisks | Where-Object { $_.DeviceID -eq $systemDiskNumber } | Select-Object MediaType
+if ($systemDisk.MediaType -ne "jeff"){
+$systemdisk.MediaType
+Write-host "Media Type of the os drive is not reported as SSD found exiting run with -bypassdrive to run anyway" 
+$Systemdisk.MediaType
+break
+}
+}
+
 
 
  while ($true) {
@@ -962,6 +981,13 @@ testing
               prep
               folders_prep
               start-transcript -Path "C:\HCLOGS314\full_logs\Full_log.txt"
+              #ssd detect
+              if (!$bypassdrive){
+              diskcompat
+              }else{
+              Write-host "Bypassing disk type check, good luck"
+              }
+              #ssd detect
               check-pendingreboot
               DefenderScanType
               regbackup
