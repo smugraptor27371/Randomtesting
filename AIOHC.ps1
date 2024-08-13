@@ -1,9 +1,9 @@
 #Requires -runasadministrator
 
 #paramaters/arguments
-#param(
-    #[switch]$bypassdrive
-#)
+param(
+    [switch]$bypassdrive
+)
 
 
 
@@ -153,7 +153,7 @@ Add-Content -Path $Global:overviewpath -Value "BIOS Version = $BIOSVersion"
 Add-Content -Path $Global:overviewpath -Value "BIOS Release Date = $BIOSReleaseDate"
 Add-Content -Path $Global:overviewpath -Value "Motherboard/Laptop Manufacturer = $SystemManufacturer"
 Add-Content -Path $Global:overviewpath -Value "Laptop Product Number = $SystemProductName (In some machines this may be the same as the motherboard's product number)"
-
+Add-Content -Path $Global:overviewpath -Value ""
 write-host "Starting DXDIAG to get system info"
 $dxdiagOutputPath = "C:\HCLOGS314\full_logs\DXDiag.xml"
 Start-Process -FilePath "dxdiag.exe" -ArgumentList "/X $dxdiagOutputPath" -NoNewWindow -Wait
@@ -161,7 +161,15 @@ Start-Process -FilePath "dxdiag.exe" -ArgumentList "/X $dxdiagOutputPath" -NoNew
 $totalRamNode = Select-Xml -Path $dxdiagOutputPath -XPath "//SystemInformation/Memory"
 $availableOsMemoryNode = Select-Xml -Path $dxdiagOutputPath -XPath "//SystemInformation/AvaliableOSMem"
 $displayDeviceNodes = Select-Xml -Path $dxdiagOutputPath -XPath "//DisplayDevice"
-$Tabissues = Select-Xml -Path $dxdiagOutputPath -XPath "//DxDiagNotes"
+
+$nodes0 = Select-Xml -Path $dxdiagoutputpath -XPath "//DxDiagNotes/*"
+
+foreach ($node in $nodes0) {
+    $nodeName = $node.Node.Name
+    $nodeValue = $node.Node.InnerText
+    Add-Content -Path $Global:overviewpath -Value "$nodeName : $nodeValue"
+}
+
 
 #CPU
 $FullProcessorInfo = Get-ItemProperty -Path $keypathCpu
@@ -172,10 +180,7 @@ Add-Content -Path $Global:overviewpath -Value ""
 Add-Content -Path $Global:overviewpath -Value "Total RAM: $($totalRamNode.Node.InnerXml)"
 Add-Content -Path $Global:overviewpath -Value "Available OS Memory: $($availableOsMemoryNode.Node.InnerXml)"
 Add-Content -Path $Global:overviewpath -Value ""
-Add-Content -Path $Global:overviewpath -Value "Display GPU: $($Tabissues.Node.DisplayTab[0])"
-Add-Content -Path $Global:overviewpath -Value "Render GPU: $($Tabissues.Node.DisplayTab[1])"
-Add-Content -Path $Global:overviewpath -Value "Sound: $($Tabissues.Node.SoundTab)"
-Add-Content -Path $Global:overviewpath -Value "Input: $($Tabissues.Node.InputTab)"
+
 
 foreach ($node in $displayDeviceNodes) {
     $device = $node.Node
@@ -191,6 +196,7 @@ foreach ($node in $displayDeviceNodes) {
 }
 add-content -path $Global:overviewpath -value "============================================================= End Info"
 }
+
 
 function Check-WindowsDefenderStatus {
 $overviewpath = "C:\HCLOGS314\overview.txt"
@@ -287,7 +293,7 @@ Function windows-defender-overview {
 If($global:Defenderthreatremovalworked -eq $false){
  add-content -Path "$overviewpath" -value "Windows Defender Threat removal      = $Global:Defenderthreatremovalerror"
  }elseif ($global:DefenderThreatremovalworked -eq $true){
- add-content -path "$overviewpath" -value "Windows Defender Threat removal      = $global:Defenderupdatestatus"
+ add-content -path "$overviewpath" -value "Windows Defender Threat removal      = $global:Defenderthreatremovalstatus"
  }else{
  add-content -path "$overviewpath" -value "Windows Defender Threat removal      = Error (DefenderThreatRemovalWorked global variable was not true or false)"
  }
@@ -982,11 +988,11 @@ break
               folders_prep
               start-transcript -Path "C:\HCLOGS314\full_logs\Full_log.txt"
               #ssd detect
-              #if (!$bypassdrive){
-              #diskcompat
-              #}else{
-              #Write-host "Bypassing disk type check, good luck"
-              #}
+              if (!$bypassdrive){
+              diskcompat
+              }else{
+              Write-host "Bypassing disk type check, good luck"
+              }
               #ssd detect
               check-pendingreboot
               DefenderScanType
