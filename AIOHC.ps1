@@ -127,7 +127,9 @@ $Global:overviewpath = "C:\HCLOGS314\overview.txt"
 $keypathCpu = "HKLM:\HARDWARE\DESCRIPTION\System\CentralProcessor\0"
 $keypathMobo = "HKLM:\HARDWARE\DESCRIPTION\System\BIOS"
 $Global:overviewpath = "C:\HCLOGS314\overview.txt"  # Define your output file path
-
+add-content -path $global:overviewpath -value "Chanel = stable"
+add-content -path $global:overviewpath -value "Remember signature based antivirus is becoming less effective and will continue to get less effective"
+add-content -path $global:overviewpath -value "At some point more heuristic and behavioural tools will be added and some signature tools may be removed"
 add-content -path $Global:overviewpath -value "============================================================= Sys Info"
 
 #MOBO
@@ -1033,7 +1035,7 @@ elseif($yes -contains $answ)
             break
         }
         2 {
-            Write-Host "additional tools"
+            Write-Host "additional tools (Depricated)"
             aditionaltools
             Delete-folder
             break
@@ -1045,7 +1047,7 @@ elseif($yes -contains $answ)
         }
        
         4 {
-            Write-Host "Reg changes for speed"
+            Write-Host "Reg changes for speed (Removed in next version)"
             regchanges
             break
         }
