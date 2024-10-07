@@ -993,9 +993,9 @@ elseif($yes -contains $answ)
  while ($true) {
     Write-Host "Select an option:"
     Write-Host "1. Healthcheck"
-    Write-Host "2. Additional tools"
-    Write-Host "3. Nukedesk"
-    Write-Host "4. Reg changes for speed"
+    Write-Host "2. Additional tools (to be removed)"
+    Write-Host "3. Nukedesk (currently not functioning as intended)"
+    Write-Host "4. Reg changes for speed (to be removed)"
     Write-Host "5. Zip Logs"
     Write-host "6. Exit"
     $choice = Read-Host "Enter your choice"
