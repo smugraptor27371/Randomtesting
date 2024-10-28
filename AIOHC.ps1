@@ -388,47 +388,6 @@ $logpath = "C:\HCLOGS314\image_repair_logs"
 dism /online /cleanup-image /restorehealth >> $logpath\dism.txt
 }
 
-Function update_common_apps {
-if (!(Get-Command winget -ErrorAction SilentlyContinue)) {
-    add-content -path "C:\HCLOGS314\overview.txt" -value "Updates = failed, most likely winget not working"
-}
-else {
-$updatelogpath = "C:\HCLOGS314\full_logs"
-$prognotinstalled = "No installed package found matching input criteria."
-$overviewpath = "C:\HCLOGS314\overview.txt"
-$updatesuccess = "Successfully installed"
-$latestinstalled = "No newer package versions are available from the configured sources."
-$librenotinstalled = "Libre Office update = Program not installed"
-$libreofficesuccesstext = "Libre Office update = Successfully updated"
-$libreofficelatest = "Libre Office update = Newest version installed already"
-$readernotinstalled = "Adobe Reader update = Program not installed"
-$readersuccesstext = "Adobe reader update = Successfully updated"
-$lreaderlatest = "Adobe Reader update = Newest version installed already"
-Winget update thedocumentfoundation.libreoffice --accept-source-agreements --accept-package-agreements --silent >> "$updatelogpath\libre.txt"
-$libreresult = get-content -path "$updatelogpath\libre.txt" -tail 2
-if ($libreresult -eq $prognotinstalled) {
-add-content -path $overviewpath -value $librenotinstalled 
-}elseif ($libreresult -eq $updatesuccess) {
-add-content -path $overviewpath -value $libreofficesuccesstext  
-}elseif ($libreresult -eq $latestinstalled){
-add-content -path $overviewpath -value $libreofficelatest
-}else{
-add-content -path $overviewpath -value "Libre Office update = unknown string found; zip and send logs to support development"
-}
-Winget update Adobe.Acrobat.Reader.64-bit --accept-source-agreements --accept-package-agreements --silent >> "$updatelogpath\reader.txt"
-$readerresult = get-content -path "$updatelogpath\Reader.txt" -tail 2
-if ($readerresult -eq $prognotinstalled) {
-add-content -path $overviewpath -value $readernotinstalled 
-}elseif ($readerresult -eq $updatesuccess) {
-add-content -path $overviewpath -value $readersuccesstext  
-}elseif ($readerresult -eq $latestinstalled){
-add-content -path $overviewpath -value $readerlatest
-}else{
-add-content -path $overviewpath -value "Adobe reader update = unknown string found; zip and send logs to support development"
-}
-}
-}
-
 function launch_human_apps {
 devmgmt
 cleanmgr
@@ -566,26 +525,6 @@ Remove-item -path "$env:TEMP\*" -recurse -force -erroraction SilentlyContinue
 New-item -path (get-psreadlineoption).historysavepath -force
 }
 
-#aditional tools function
-function aditionaltools {
-Write-Host "Additional tools."
-$tempfolder = "C:\Healthchecktemp21z1"
-$downloadurltool = "https://windows-repair-toolbox.com/download/click.php?id=Windows_Repair_Toolbox"
-new-item -itemtype directory -path $tempfolder
-write-host "downloading"
-Invoke-WebRequest -uri $downloadurltool -outfile C:\Healthchecktemp21z1\HCAIO.zip
-Write-Host "decompressing"
-Expand-archive -path C:\Healthchecktemp21z1\HCAIO.zip -destinationpath $tempfolder
-Write-Host "deleting zip"
-remove-item -path C:\Healthchecktemp21z1\HCAIO.zip
-ren C:\Healthchecktemp21z1\Windows_Repair_Toolbox.exe C:\Healthchecktemp21z1\HCAIO.exe
-Remove-Item -path C:\Healthchecktemp21z1\custom\settings.xml
-$xmlpath = 'C:\Healthchecktemp21z1\custom\settings.xml'
-Invoke-WebRequest -uri https://raw.githubusercontent.com/smugraptor27371/Randomtesting/main/settings.xml -outfile $xmlpath
-Write-Host "launching" 
-C:\Healthchecktemp21z1\HCAIO.exe 
-}
-
 function Delete-Folder {
     param (
         [string]$userInput,
@@ -677,79 +616,6 @@ function nukedesk {
         }
     }
 }
-}
-
-#registry changes
-function regexport {
- Write-host "backing up registry keys"
-$logpathtocheck = "C:\HCLOGS314"
-if (Test-Path $logpathtocheck) {
-    Write-Host "Folder already exists"
-} else {
-    Write-Host "Folder does not exist, creating folder"
-    New-Item -itemtype Directory -path "C:\HCLOGS314"
-} 
-reg export HKEY_classes_root "C:\HCLOGS314\classes_root"
-reg export HKEY_current_user "C:\HCLOGS314\current_user"
-reg export HKEY_Local_machine "C:\HCLOGS314\localmachine.reg"
-reg export HKEY_users "C:\HCLOGS314\\users.reg"
-reg export HKEY_current_config "C:\HCLOGS314\currentconfig.reg"
-}
-
-function regchanges {
- while ($true) {
-    Write-Host "Select an option:"
-    Write-Host "1. All reg changes"
-    Write-Host "2. Telemetry changes"
-    Write-Host "3. Search suggestions and cortana changes"
-    Write-Host "4. Work in progress"
-    Write-Host "5. Exit"
-    $choice = Read-Host "Enter your choice"
-    switch ($choice) {
-        1 {
-            Write-Host "All (telemetry, tips and searchbox)"
-regexport
-Write-host "downloading reg files"
-Invoke-WebRequest -uri https://raw.githubusercontent.com/smugraptor27371/Randomtesting/main/telemetry.reg -destinationpath $env:temp/telemetry.reg
-Write-host "applying keys..."
-reg import $env:temp\telemtry.reg
-Write-host "downloading reg files"
-Invoke-WebRequest -uri https://raw.githubusercontent.com/smugraptor27371/Randomtesting/main/suggestions_cortana_ect.reg -destinationpath $env:temp/search.reg
-Write-host "applying keys..."
-reg import $env:temp\search.reg
-            break
-        }
-        2 {
-            Write-Host "Telemetry"
-regexport
-Invoke-WebRequest -uri https://raw.githubusercontent.com/smugraptor27371/Randomtesting/main/telemetry.reg -destinationpath $env:temp/telemetry.reg
-Write-host "applying keys..."
-reg import $env:temp\telemtry.reg
-            break
-        }
-        3 {
-            Write-Host "Suggestions_cortanaect.reg "
-regexport
-Write-host "downloading reg files"
-Invoke-WebRequest -uri https://raw.githubusercontent.com/smugraptor27371/Randomtesting/main/suggestions_cortana_ect.reg -destinationpath $env:temp/search.reg
-Write-host "applying keys..."
-reg import $env:temp\search.reg
-            break
-        }
-        4 {
-            Write-Host " work in progress"
-            break
-        }
-        5 {
-            Write-Host "Exit"
-            return
-        }
-        default {
-            Write-Host "Invalid choice. Please enter 1-5"
-        }
-    }
-}
-    Read-Host "Press Enter to continue..."
 }
 
 function Check-PendingReboot {
@@ -1022,7 +888,7 @@ elseif($yes -contains $answ)
               ADW_malwarebytes
               runsfc
               rundism
-              #update_common_apps
+              ##update apps
               launch_human_apps
               disable_some_things
               wiztree
@@ -1038,24 +904,11 @@ elseif($yes -contains $answ)
             break
         }
         2 {
-            Write-Host "additional tools (Depricated)"
-            aditionaltools
-            Delete-folder
-            break
-        }
-        3 {
-            Write-Host "Nukedesk"
+            Write-Host "Nukedesk - not working as intended at the moment"
             nukedesk
-            break
         }
-       
-        4 {
-            Write-Host "Reg changes for speed (Removed in next version)"
-            regchanges
-            break
-        }
-       
-        5 {
+
+        3 {
             test-path -path "C:\HCLOGS314" 
             if (test-path -path "C:\HCLOGS314"){
             default-folder-zip
@@ -1064,14 +917,14 @@ elseif($yes -contains $answ)
             Write-host "could not find Logs (The folder is created at the start of option 1)"
             }
         }
-        6{
+        3{
             Write-Host "Exit"
             Write-host "Cleanup"
             cleanup
             return
         }  
         default {
-            Write-Host "Invalid choice. Please enter 1-6"
+            Write-Host "Invalid choice. Please enter 1-4"
         }
     }
 }
