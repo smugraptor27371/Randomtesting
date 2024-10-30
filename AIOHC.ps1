@@ -863,8 +863,8 @@ elseif($yes -contains $answ)
     Write-Host "Select an option:"
     Write-Host "1. Healthcheck"
     Write-Host "2. Nukedesk (currently not functioning as intended)"
-    Write-Host "3. zip logs
-    Write-Host "4. Exit
+    Write-Host "3. zip logs"
+    Write-Host "4. Exit"
     
     $choice = Read-Host "Enter your choice"
     switch ($choice) {
