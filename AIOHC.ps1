@@ -690,7 +690,7 @@ elseif($yes -contains $answ)
 function open-logs{
 read-host "Any Button to continue and open logs"
 Explorer.exe C:\HCLOGS314
-Read-host "Any Button to proceed back to main menu (after checking logs and correcting any issues)"
+Read-host "Any button to retun to main menu, Dont forget to zip the logs if things broke"
 } 
 
 function Default-folder-zip {
