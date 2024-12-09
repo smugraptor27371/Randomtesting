@@ -12,10 +12,10 @@ if ($free_space_gb -lt 15) {
     Write-Host "There is sufficient disk space available." 
 }
 Write-output "Checking WMI Repository health..."
-$wmistate = winmgmt /verifyrepository
-if ($wmistate -ne "WMI repository is consistent"){
+$script:wmistate = winmgmt /verifyrepository
+if ($script:wmistate -ne "WMI repository is consistent"){
 Write-output "WMI repository is not healthy, output of verify command:"
-write-output $wmistate
+write-output $Script:wmistate
 Write-output "collect logs and fix Repository issue, In future this will be automated"
 Pause
 }
@@ -515,6 +515,8 @@ $securebootlog = $securebootissues
 }
 Add-content -path "C:\HCLOGS314\overview.txt" -value "$securebootlog"
 #End of secureboot detection
+#adding wmi
+add-content Add-content -path "C:\HCLOGS314\overview.txt" -value "$script:wmistate"
 testing
 }
 
