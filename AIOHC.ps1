@@ -9,7 +9,15 @@ if ($free_space_gb -lt 15) {
     stop-transcript
     break
 } else {
-    Write-Host "There is sufficient disk space available."  
+    Write-Host "There is sufficient disk space available." 
+}
+Write-output "Checking WMI Repository health..."
+$wmistate = winmgmt /verifyrepository
+if ($wmistate -ne "WMI repository is consistent"){
+Write-output "WMI repository is not healthy, output of verify command:"
+write-output $wmistate
+Write-output "collect logs and fix Repository issue, In future this will be automated"
+Pause
 }
 }
 
