@@ -516,7 +516,7 @@ $securebootlog = $securebootissues
 Add-content -path "C:\HCLOGS314\overview.txt" -value "$securebootlog"
 #End of secureboot detection
 #adding wmi
-add-content Add-content -path "C:\HCLOGS314\overview.txt" -value "$script:wmistate"
+Add-content -path "C:\HCLOGS314\overview.txt" -value "$script:wmistate"
 testing
 }
 
