@@ -806,9 +806,19 @@ $Global:preventautoencrypt = "Success"
 }
 Catch{$Global:preventautoencrypt = $error
 write-host "Error occurred trying to set registry key/value full error in log."}
+
+
+$KeyPath1 = "HKLM:\SYSTEM\CurrentControlSet\Control\BitLocker\"
+$ValueName1 = "PreventDeviceEncryption"
+
+try {Set-ItemProperty -path "$keypath1" -name "$ValueName1" -value "$ValueData" -type Dword
+$Global:preventautoencrypt1 = "Success"
+}
+Catch{$Global:preventautoencrypt1 = $error
+write-host "Error occurred trying to set registry key/value full error in log."}
+
 testing
 }
-
 Function Bitlocker-Overview {
     $bitlockerstatus = Get-BitLockerVolume | Select-Object MountPoint, VolumeType, VolumeStatus, EncryptionPercentage, CapacityGB
 
