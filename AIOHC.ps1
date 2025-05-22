@@ -898,7 +898,7 @@ pickup needed? =
 
 dropoff needed? =
 "
-new-item -Path C:\hclogs314\quote -name manualinfo.txt -ItemType "file"
+new-item -Path C:\hclogs314\quote -name manualinfo.txt -ItemType "file" -force
 $manualquestions >> C:\hclogs314\quote\manualinfo.txt
 Write-Output "waiting for 5 seconds to allow for slow file writes"
 start-sleep -Seconds 5
