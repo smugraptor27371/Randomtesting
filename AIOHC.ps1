@@ -570,64 +570,6 @@ while ($true) {
 }
 }
 
-#nukedesk
-function nukedesk {
- while ($true) {
-    Write-Host "Select an option:"
-    Write-Host "1. NukeDesk"
-    Write-Host "2. Restore Hostfile"
-    Write-Host "3. Exit and delete backup"  
-    $choice = Read-Host "Enter your choice"
-    switch ($choice) {
-        1 {
-            Write-Host "Modifying host file"
-            $domainsToBlock = @("anydesk.com", "net.anydesk.com", "www.anydesk.com", "https://anydesk.com/en-gb", "https://anydesk.com","https://fastsupport.gotoassist.com")
-            $blockIPAddress = "127.0.0.1"
-            $hostsFilePath = "$env:SystemRoot\System32\drivers\etc\hosts"
-            $backupFilePath = "$env:SystemRoot\System32\drivers\etc\hosts.bak"
-            if (-not (Test-Path -Path $hostsFilePath)) {
-                Write-Host "Hosts file not found."
-                Exit
-            }
-            Copy-Item -Path $hostsFilePath -Destination $backupFilePath -Force
-            foreach ($domainToBlock in $domainsToBlock) {
-                if (-not (Get-Content $hostsFilePath | Select-String -Pattern $domainToBlock)) {
-                    Add-Content -Path $hostsFilePath -Value "$blockIPAddress`t$domainToBlock"
-                    Add-Content -Path $hostsFilePath -Value "$blockIPAddress`t*.$domainToBlock"
-                    Write-Host "Blocked $domainToBlock and its subdomains."
-                } else {
-                    Write-Host "$domainToBlock is already blocked."
-                }
-            }
-            ipconfig /flushdns
-            break
-        }
-        2 {
-            Write-Host "Reverting host file"
-            $hostsFilePath = "$env:SystemRoot\System32\drivers\etc\hosts"
-            $backupFilePath = "$env:SystemRoot\System32\drivers\etc\hosts.bak"
-            if (-not (Test-Path -Path $backupFilePath)) {
-                Write-Host "Backup file not found. Nothing to restore."
-                break
-            }
-            Copy-Item -Path $backupFilePath -Destination $hostsFilePath -Force
-            Write-Host "Restored the original hosts file from the backup."
-            ipconfig /flushdns
-            break
-        }
-        3 {
-            Write-Host "Exit and delete backup"
-            Remove-Item "$env:SystemRoot\System32\drivers\etc\hosts.bak" -ErrorAction SilentlyContinue
-            ipconfig /flushdns
-            return
-        }
-        default {
-            Write-Host "Invalid choice. Please enter 1, 2, or 3."
-        }
-    }
-}
-}
-
 function Check-PendingReboot {
     $global:pendingreason = "None"
     $global:wasoverridden = "false"
@@ -879,10 +821,98 @@ elseif($yes -contains $answ)
 }
 }
 
+function create-quote {
+$quotefolderlocation = "C:\hclogs314\quote"
+
+if (-not(Test-Path C:\HCLOGS314 -PathType Container)) {
+    New-Item -path C:\HCLOGS314 -ItemType Directory -force
+}
+
+if (-not(Test-Path $quotefolderlocation -PathType Container)) {
+    New-Item -path $quotefolderlocation -ItemType Directory -force
+}
+write-output "Using msinfo to gather hardware environment this may take a a few minutes on slow machines"
+Start-Process -FilePath "msinfo32.exe" -ArgumentList "/report C:\hclogs314\quote\fullHWinfo.txt" -Wait
+Write-Output "Retreving disk information"
+Get-Disk | Select-Object -Property FriendlyName,PartitionStyle,Bustype,healthstatus >> C:\hclogs314\quote\diskinfo.txt
+
+write-output "Retreving Software information, Slow Systems may lag during this"
+$regPaths = @(
+    "HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\*",
+    "HKLM:\Software\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*",
+    "HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall\*"
+)
+
+$programs = foreach ($path in $regPaths) {
+    Get-ItemProperty $path -ErrorAction SilentlyContinue | Where-Object {
+        $_.DisplayName -and ($_.SystemComponent -ne 1) -and ($_.ReleaseType -ne "Update")
+    } | ForEach-Object {
+        $type = if ($_.UninstallString -match "msiexec") {
+            "MSI"
+        } elseif ($_.UninstallString -match "\.exe") {
+            "EXE"
+        } else {
+            "Unknown"
+        }
+
+        [PSCustomObject]@{
+            Name         = $_.DisplayName
+            Version      = $_.DisplayVersion
+            Publisher    = $_.Publisher
+            InstallDate  = $_.InstallDate
+            Installer    = $type
+            RegistryKey  = $_.PSPath
+        }
+    }
+}
+
+Write-output "Exporting to csv"
+$exportPath = "C:\hclogs314\quote\softwareinfo.csv"
+$programs | Sort-Object Name | Export-Csv -Path $exportPath -NoTypeInformation -Encoding UTF8
+
+$manualquestions = "
+#leave blank if not applicable e.g desktop size requirements if we are quoting for a laptop
+
+
+Extra Items we are quoting for e.g.  wireless keyboard and mouse and external backup drive= 
+
+Are we giving options to different machines e.g. laptop and desktop = 
+
+Wifi needed? = 
+
+use case e.g office and emails or video editing =
+
+desktop size requirements = 
+
+other notes e.g needs 8+usb ports = 
+
+Form factor  (Laptop,desktop,AIO) = 
+
+Screen size wanted = 
+
+Screen connector (Display port,vga,etc) =
+
+Other notes on the screen e.g wants speakers on monitor or needs 1440p =
+
+pickup needed? =
+
+dropoff needed? =
+"
+new-item -Path C:\hclogs314\quote -name manualinfo.txt -ItemType "file"
+$manualquestions >> C:\hclogs314\quote\manualinfo.txt
+Write-Output "waiting for 5 seconds to allow for slow file writes"
+start-sleep -Seconds 5
+notepad C:\hclogs314\quote\manualinfo.txt
+Write-output "When the text file has been completed"
+pause
+Write-Output "Zipping Quote logs"
+Compress-Archive -path "C:\HCLOGS314\quote" -DestinationPath $env:USERPROFILE\desktop\AAZippedquotefiles.zip -force
+}
+
  while ($true) {
     Write-Host "Select an option:"
     Write-Host "1. Healthcheck"
-    Write-Host "2. Nukedesk (currently not functioning as intended)"
+    Write-Host "2. Create Quote file"
     Write-Host "3. zip logs"
     Write-Host "4. Exit"
     
@@ -923,8 +953,8 @@ elseif($yes -contains $answ)
             break
         }
         2 {
-            Write-Host "Nukedesk - not working as intended at the moment"
-            nukedesk
+            Write-Host "Create quote file"
+            create-quote
         }
 
         3 {
