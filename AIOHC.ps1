@@ -529,7 +529,14 @@ function cleanup {
     } else {
         Write-Host "HDSentinel is not running."
     }
+
+
+if (test-path -Path "C:\AdwCleaner"){
 Remove-Item -path "C:\AdwCleaner" -recurse -force
+}
+
+
+
 Remove-item -path "C:\HCLOGS314" -recurse -force
 Remove-item -path "$env:TEMP\*" -recurse -force -erroraction SilentlyContinue
 New-item -path (get-psreadlineoption).historysavepath -force
@@ -831,7 +838,7 @@ if (-not(Test-Path C:\HCLOGS314 -PathType Container)) {
 if (-not(Test-Path $quotefolderlocation -PathType Container)) {
     New-Item -path $quotefolderlocation -ItemType Directory -force
 }
-write-output "Using msinfo to gather hardware environment this may take a a few minutes on slow machines"
+write-output "Using msinfo to gather hardware environment this may take a a few minutes but the script has not frozen"
 Start-Process -FilePath "msinfo32.exe" -ArgumentList "/report C:\hclogs314\quote\fullHWinfo.txt" -Wait
 Write-Output "Retreving disk information"
 Get-Disk | Select-Object -Property FriendlyName,PartitionStyle,Bustype,healthstatus >> C:\hclogs314\quote\diskinfo.txt
@@ -884,7 +891,7 @@ use case e.g office and emails or video editing =
 
 desktop size requirements = 
 
-other notes e.g needs 8+usb ports = 
+other notes e.g needs 8+usb ports or wants DVD drive = 
 
 Form factor  (Laptop,desktop,AIO) = 
 
