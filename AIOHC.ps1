@@ -948,7 +948,7 @@ Compress-Archive -path "C:\HCLOGS314\quote" -DestinationPath $env:USERPROFILE\de
               launch_human_apps
               disable_some_things
               wiztree
-              webroot
+              #webroot
               hmpro
               memdump
               create_overview 
@@ -987,4 +987,5 @@ Compress-Archive -path "C:\HCLOGS314\quote" -DestinationPath $env:USERPROFILE\de
     Read-Host "Press Enter to continue..."
     Write-host "SSD TRIM"
     defrag/trim
+
 
