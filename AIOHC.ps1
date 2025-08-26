@@ -842,6 +842,12 @@ write-output "Using msinfo to gather hardware environment this may take a a few 
 Start-Process -FilePath "msinfo32.exe" -ArgumentList "/report C:\hclogs314\quote\fullHWinfo.txt" -Wait
 Write-Output "Retreving disk information"
 Get-Disk | Select-Object -Property FriendlyName,PartitionStyle,Bustype,healthstatus,number >> C:\hclogs314\quote\diskinfo.txt
+$numbers = Get-Disk | Select-Object -ExpandProperty Number
+foreach ($disk in $numbers) {
+    Write-Host "=== Disk $disk ===" >> C:\hclogs314\quote\diskinfo.txt
+    Get-Partition -DiskNumber $disk | Get-Volume | Format-Table >> C:\hclogs314\quote\diskinfo.txt
+    Write-Host "" >> C:\hclogs314\quote\diskinfo.txt
+}
 
 write-output "Retreving Software information, Slow Systems may lag during this"
 $regPaths = @(
@@ -987,6 +993,7 @@ Compress-Archive -path "C:\HCLOGS314\quote" -DestinationPath $env:USERPROFILE\de
     Read-Host "Press Enter to continue..."
     Write-host "SSD TRIM"
     defrag/trim
+
 
 
 
