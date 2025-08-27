@@ -133,15 +133,25 @@ chkdsk /scan /perf >> C:\HCLOGS314\full_logs\chkdsk.txt
 }
 
 function get_pcinfo {
+    
+    param(
+        [switch]$quote
+    )
 
-$Global:overviewpath = "C:\HCLOGS314\overview.txt"
+    # Set path based on mode
+    if ($quote) {
+        $path = "C:\hclogs314\quote\BasicPcInfo.txt"
+        new-item -path $path -ItemType file
+    } else {
+        $path = "C:\hclogs314\overview.txt"
+    }
+
+
+
+
 $keypathCpu = "HKLM:\HARDWARE\DESCRIPTION\System\CentralProcessor\0"
 $keypathMobo = "HKLM:\HARDWARE\DESCRIPTION\System\BIOS"
-$Global:overviewpath = "C:\HCLOGS314\overview.txt"  # Define your output file path
-add-content -path $global:overviewpath -value "Chanel = stable"
-add-content -path $global:overviewpath -value "Remember signature based antivirus is becoming less effective and will continue to get less effective"
-add-content -path $global:overviewpath -value "At some point more heuristic and behavioural tools will be added and some signature tools may be removed"
-add-content -path $Global:overviewpath -value "============================================================= Sys Info"
+add-content -path $path -value "============================================================= Sys Info"
 
 #MOBO
 $FullMoboInfo = Get-ItemProperty -Path $keypathMobo
@@ -153,13 +163,13 @@ $BIOSReleaseDate = $FullMoboInfo.BIOSReleaseDate
 $SystemManufacturer = $FullMoboInfo.SystemManufacturer
 $SystemProductName = $FullMoboInfo.SystemProductName
 
-Add-Content -Path $Global:overviewpath -Value "Motherboard Product Number = $BaseBoardProduct"
-Add-Content -Path $Global:overviewpath -Value "Motherboard Product Version = $BaseBoardVersion"
-Add-Content -Path $Global:overviewpath -Value "BIOS Version = $BIOSVersion"
-Add-Content -Path $Global:overviewpath -Value "BIOS Release Date = $BIOSReleaseDate"
-Add-Content -Path $Global:overviewpath -Value "Motherboard/Laptop Manufacturer = $SystemManufacturer"
-Add-Content -Path $Global:overviewpath -Value "Laptop Product Number = $SystemProductName (In some machines this may be the same as the motherboard's product number)"
-Add-Content -Path $Global:overviewpath -Value ""
+Add-Content -Path $path -Value "Motherboard Product Number = $BaseBoardProduct"
+Add-Content -Path $path -Value "Motherboard Product Version = $BaseBoardVersion"
+Add-Content -Path $path -Value "BIOS Version = $BIOSVersion"
+Add-Content -Path $path -Value "BIOS Release Date = $BIOSReleaseDate"
+Add-Content -Path $path -Value "Motherboard/Laptop Manufacturer = $SystemManufacturer"
+Add-Content -Path $path -Value "Laptop Product Number = $SystemProductName (In some machines this may be the same as the motherboard's product number)"
+Add-Content -Path $path -Value ""
 write-host "Starting DXDIAG to get system info"
 $dxdiagOutputPath = "C:\HCLOGS314\full_logs\DXDiag.xml"
 Start-Process -FilePath "dxdiag.exe" -ArgumentList "/X $dxdiagOutputPath" -NoNewWindow -Wait
@@ -173,35 +183,36 @@ $nodes0 = Select-Xml -Path $dxdiagoutputpath -XPath "//DxDiagNotes/*"
 foreach ($node in $nodes0) {
     $nodeName = $node.Node.Name
     $nodeValue = $node.Node.InnerText
-    Add-Content -Path $Global:overviewpath -Value "$nodeName : $nodeValue"
+    Add-Content -Path $path -Value "$nodeName : $nodeValue"
 }
 
 
 #CPU
 $FullProcessorInfo = Get-ItemProperty -Path $keypathCpu
 $CpuInfo = $FullProcessorInfo.ProcessorNameString
-Add-Content -Path $Global:overviewpath -Value "CPU = $CpuInfo"
+Add-Content -Path $path -Value "CPU = $CpuInfo"
 
-Add-Content -Path $Global:overviewpath -Value ""
-Add-Content -Path $Global:overviewpath -Value "Total RAM: $($totalRamNode.Node.InnerXml)"
-Add-Content -Path $Global:overviewpath -Value "Available OS Memory: $($availableOsMemoryNode.Node.InnerXml)"
-Add-Content -Path $Global:overviewpath -Value ""
+Add-Content -Path $path -Value ""
+Add-Content -Path $path -Value "Total RAM: $($totalRamNode.Node.InnerXml)"
+Add-Content -Path $path -Value "Available OS Memory: $($availableOsMemoryNode.Node.InnerXml)"
+Add-Content -Path $path -Value ""
 
 
 foreach ($node in $displayDeviceNodes) {
     $device = $node.Node
-    Add-Content -Path $Global:overviewpath -Value "----------------------"
-    Add-Content -Path $Global:overviewpath -Value "Device name: $($device.Cardname)"
-    Add-Content -Path $Global:overviewpath -Value "Manufacturer: $($device.Manufacturer)"
-    Add-Content -Path $Global:overviewpath -Value "Chip Type: $($device.ChipType)"
-    Add-Content -Path $Global:overviewpath -Value "Dedicated Memory: $($device.DedicatedMemory)"
-    Add-Content -Path $Global:overviewpath -Value "Shared Memory: $($device.SharedMemory)"
-    Add-Content -Path $Global:overviewpath -Value "Device Problem Code: $($device.DeviceProblemCode)"
-    Add-Content -Path $Global:overviewpath -Value "WHQL Logo: $($device.DriverWHQLLogo)"
-    Add-Content -Path $Global:overviewpath -Value "----------------------"
+    Add-Content -Path $path -Value "----------------------"
+    Add-Content -Path $path -Value "Device name: $($device.Cardname)"
+    Add-Content -Path $path -Value "Manufacturer: $($device.Manufacturer)"
+    Add-Content -Path $path -Value "Chip Type: $($device.ChipType)"
+    Add-Content -Path $path -Value "Dedicated Memory: $($device.DedicatedMemory)"
+    Add-Content -Path $path -Value "Shared Memory: $($device.SharedMemory)"
+    Add-Content -Path $path -Value "Device Problem Code: $($device.DeviceProblemCode)"
+    Add-Content -Path $path -Value "WHQL Logo: $($device.DriverWHQLLogo)"
+    Add-Content -Path $path -Value "----------------------"
 }
-add-content -path $Global:overviewpath -value "============================================================= End Info"
+add-content -path $path -value "============================================================= End Info"
 }
+
 
 
 function Check-WindowsDefenderStatus {
@@ -848,6 +859,8 @@ foreach ($disk in $numbers) {
     Get-Partition -DiskNumber $disk | Get-Volume | Format-Table >> C:\hclogs314\quote\diskinfo.txt
     add-content -value "" -path C:\hclogs314\quote\diskinfo.txt
 }
+
+get_pcinfo -quote
 
 write-output "Retreving Software information, Slow Systems may lag during this"
 $regPaths = @(
