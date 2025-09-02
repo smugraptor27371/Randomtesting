@@ -148,8 +148,8 @@ function get_pcinfo {
 
 
 
-if (-not(Test-Path C:\HCLOGS3141\full_logs -PathType Container)) {
-    New-Item -path C:\HCLOGS3141\full_logs -ItemType Directory
+if (-not(Test-Path C:\HCLOGS314\full_logs -PathType Container)) {
+    New-Item -path C:\HCLOGS314\full_logs -ItemType Directory
 }
 
 $keypathCpu = "HKLM:\HARDWARE\DESCRIPTION\System\CentralProcessor\0"
@@ -1009,6 +1009,7 @@ Compress-Archive -path "C:\HCLOGS314\quote" -DestinationPath $env:USERPROFILE\de
     Read-Host "Press Enter to continue..."
     Write-host "SSD TRIM"
     defrag/trim
+
 
 
 
