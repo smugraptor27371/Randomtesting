@@ -844,7 +844,7 @@ elseif($yes -contains $answ)
 
 function create-quote {
 $quotefolderlocation = "C:\hclogs314\quote"
-
+$DesktopPath = [Environment]::GetFolderPath(“Desktop”)
 if (-not(Test-Path C:\HCLOGS314 -PathType Container)) {
     New-Item -path C:\HCLOGS314 -ItemType Directory -force
 }
@@ -935,7 +935,7 @@ notepad C:\hclogs314\quote\manualinfo.txt
 Write-output "When the text file has been completed"
 pause
 Write-Output "Zipping Quote logs"
-Compress-Archive -path "C:\HCLOGS314\quote" -DestinationPath $env:USERPROFILE\desktop\AAZippedquotefiles.zip -force
+Compress-Archive -path "C:\HCLOGS314\quote" -DestinationPath $DesktopPath\AAZippedquotefiles.zip -force
 }
 
  while ($true) {
@@ -1009,6 +1009,7 @@ Compress-Archive -path "C:\HCLOGS314\quote" -DestinationPath $env:USERPROFILE\de
     Read-Host "Press Enter to continue..."
     Write-host "SSD TRIM"
     defrag/trim
+
 
 
 
