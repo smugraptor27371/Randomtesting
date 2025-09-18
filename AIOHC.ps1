@@ -844,7 +844,7 @@ elseif($yes -contains $answ)
 
 function create-quote {
 $quotefolderlocation = "C:\hclogs314\quote"
-$DesktopPath = [Environment]::GetFolderPath(“Desktop”)
+$DesktopPath = [Environment]::GetFolderPath("Desktop")
 if (-not(Test-Path C:\HCLOGS314 -PathType Container)) {
     New-Item -path C:\HCLOGS314 -ItemType Directory -force
 }
@@ -927,6 +927,7 @@ pickup needed? =
 
 dropoff needed? =
 "
+
 new-item -Path C:\hclogs314\quote -name manualinfo.txt -ItemType "file" -force
 $manualquestions >> C:\hclogs314\quote\manualinfo.txt
 Write-Output "waiting for 5 seconds to allow for slow file writes"
@@ -934,8 +935,10 @@ start-sleep -Seconds 5
 notepad C:\hclogs314\quote\manualinfo.txt
 Write-output "When the text file has been completed"
 pause
+Write-host "this name is optional and can be left blank if only creating one quote file"
+$optionalname = Read-host -Prompt "Name at start of quotefile"
 Write-Output "Zipping Quote logs"
-Compress-Archive -path "C:\HCLOGS314\quote" -DestinationPath $DesktopPath\AAZippedquotefiles.zip -force
+Compress-Archive -path "C:\HCLOGS314\quote" -DestinationPath "$DesktopPath\$optionalname AAZippedquotefiles.zip" -force
 }
 
  while ($true) {
