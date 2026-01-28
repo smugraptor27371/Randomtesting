@@ -94,6 +94,13 @@ try {
 } catch {
     Write-Host "Registry backup unsuccessful"
 }
+Write-host "Enabling automatic registry backup task"
+New-ItemProperty `
+  -Path "HKLM:\System\CurrentControlSet\Control\Session Manager\Configuration Manager" `
+  -Name "EnablePeriodicBackup" `
+  -PropertyType DWord `
+  -Value 1 `
+  -Force
 }
 
 function disk_health_check {
@@ -1012,6 +1019,7 @@ Compress-Archive -path "C:\HCLOGS314\quote" -DestinationPath "$DesktopPath\$opti
     Read-Host "Press Enter to continue..."
     Write-host "SSD TRIM"
     defrag/trim
+
 
 
 
