@@ -425,7 +425,7 @@ cleanmgr
 
 function disable_Some_things {
 disable-windowserrorreporting
-Disable-WindowsOptionalFeature -Online -FeatureName MicrosoftWindowsPowerShellV2 -NoRestart
+#Disable-WindowsOptionalFeature -Online -FeatureName MicrosoftWindowsPowerShellV2 -NoRestart
 }
 
 function defrag/trim{
