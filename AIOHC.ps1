@@ -117,24 +117,6 @@ Expand-Archive -path "$env:TEMP\hwmon.zip" -destinationpath "$Env:TEMP\hwmon"
 Start-Process -FilePath "$env:TEMP\hwmon\HWMonitor_x64.exe"
 }
 
-Function R_kill {
-write-host "downloading whitelist"
-Invoke-WebRequest -Uri https://raw.githubusercontent.com/smugraptor27371/Randomtesting/main/rkillwhitelist.txt -outfile "C:\HCLOGS314\rkillwhitelist.txt"
-$tempPath = "$env:TEMP"
-Add-content -path "C:\HCLOGS314\Rkillwhitelist.txt" -value "$tempPath\hwmon\HWMonitor_x64.exe"
-Add-content -path "C:\HCLOGS314\Rkillwhitelist.txt" -value "$tempPath\diskhealth\HDSentinel.exe"
-$path = join-path -path "C:\users" -ChildPath "$env:username"
-$localteamviewerpath = join-path -path "$path" -childpath "appdata\local\Temp\Teamviewer\Teamviewer_service.exe"
-add-content -path "C:\HCLOGS314\Rkillwhitelist.txt" -value "`"$localteamviewerpath`""
-Write-host "downloading Preperation"
-$iwr = Invoke-WebRequest -Uri "https://www.bleepingcomputer.com/download/rkill/dl/10/"
-$directlink = ($iwr.content | select-string -Pattern "url=.+rkill\.exe" -AllMatches).matches.value -replace "url=",""
-Invoke-WebRequest -Uri $directlink -outfile "$env:TEMP\rkill.exe" 
-Unblock-File "$env:TEMP\rkill.exe" 
-Start-Process powershell -ArgumentList "-NoExit", "-Command", "while (`$true) { Start-Sleep -Seconds 60; `$fileSize = (Get-Item 'C:\HCLOGS314\full_logs\Rkill.txt').Length; if (`$fileSize -ge 500) { Stop-Process -Name rkill -Force; Stop-Process -Name rkill64 -Force; start-sleep 10; exit; } else { Write-Host 'Waiting 1 min'; } }"
-Start-Process -FilePath "$env:TEMP\rkill.exe" -ArgumentList "-l", "C:\HCLOGS314\full_logs\Rkill.txt", "-w", "C:\HCLOGS314\rkillwhitelist.txt" 
-}
-
 function chkdsk/scan {
 Write-host "running chkdsk /scan"
 chkdsk /scan /perf >> C:\HCLOGS314\full_logs\chkdsk.txt
@@ -425,16 +407,10 @@ cleanmgr
 
 function disable_Some_things {
 disable-windowserrorreporting
-#Disable-WindowsOptionalFeature -Online -FeatureName MicrosoftWindowsPowerShellV2 -NoRestart
 }
 
 function defrag/trim{
 defrag /C /O /V
-}
-
-function webroot{
-invoke-webrequest -Uri "http://anywhere.webrootcloudav.com/zerol/syswranalyzer.exe" -outfile "$env:TEMP/Webroot.exe"
-start-process -filepath "$env:TEMP/webroot.exe"
 }
 
 function wiztree{
@@ -456,11 +432,6 @@ reg import $env:temp\memdump.reg
 }
 
 function create_overview{
-if (Test-Path -Path "C:\HCLOGS314\full_logs\Rkill.txt" ) {
-    notepad C:\HCLOGS314\full_logs\rkill.txt
-} else { 
-    add-content -path "C:\HCLOGS314\overview.txt" -value Rkill = Log not found check full logs
-}
 #CHKDSK
 if (Test-Path -Path "C:\HCLOGS314\full_logs\chkdsk.txt" ) {
                 if (Get-Content -Path "C:\HCLOGS314\full_logs\chkdsk.txt" | Select-String -Pattern "found no problems") {
@@ -969,7 +940,6 @@ Compress-Archive -path "C:\HCLOGS314\quote" -DestinationPath "$DesktopPath\$opti
               regbackup
               disk_health_check
               hwmonitor
-              R_kill
               chkdsk/scan
               get_pcinfo
               Check-WindowsDefenderStatus
@@ -977,11 +947,9 @@ Compress-Archive -path "C:\HCLOGS314\quote" -DestinationPath "$DesktopPath\$opti
               ADW_malwarebytes
               runsfc
               rundism
-              ##update apps
               launch_human_apps
               disable_some_things
               wiztree
-              #webroot
               hmpro
               memdump
               create_overview 
