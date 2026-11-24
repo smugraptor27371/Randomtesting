@@ -19,6 +19,37 @@ write-output $Script:wmistate
 Write-output "collect logs and fix Repository issue, In future this will be automated"
 Pause
 }
+Write-output "checking for known problem drivers"
+
+$script:overviewpxhlpa64 = ""
+
+$pxhlpa64status = get-ciminstance -query "SELECT * FROM Win32_SystemDriver WHERE Name='pxh1pa64'"
+if ($pxhlpa64status) {
+
+
+Write-output "pxhlpa64 service found, this is known to cause issues with windows updates (oct/nov 2026)"
+Write-output ""
+Write-output "strongly suggest deletion of service and driver as well as removal of any disk (cd/dvd) software"
+write-output ""
+Write-output "exiting in 10 seconds to allow manual intervention"
+start-sleep 10
+exit
+
+
+
+#Sc.exe delete pxhlpa64
+#remove-item -path C:\windows\system32\drivers\pxhlpa64.sys
+
+
+
+} else {
+$script:overviewpxhlpa64 = "Pxhlpa64.sys Not present"
+Write-host "pxhlpa64 not found"
+pause
+
+}
+
+
 }
 
 function folders_prep{
@@ -205,8 +236,6 @@ foreach ($node in $displayDeviceNodes) {
 }
 add-content -path $path -value "============================================================= End Info"
 }
-
-
 
 function Check-WindowsDefenderStatus {
 $overviewpath = "C:\HCLOGS314\overview.txt"
@@ -510,6 +539,9 @@ Add-content -path "C:\HCLOGS314\overview.txt" -value "$securebootlog"
 #End of secureboot detection
 #adding wmi
 Add-content -path "C:\HCLOGS314\overview.txt" -value "$script:wmistate"
+#end of wmi
+#bad driver detect
+add-content -path "C:\hclogs314\overvire.txt" -Value $script:overviewpxhlpa64
 testing
 }
 
@@ -722,7 +754,6 @@ $outputContent = $variables | ForEach-Object {
 Add-Content -Path $variabledump -Value $outputContent
 }
 
-
 function testing-globalscope {
 $globvardump = "C:\HCLOGS314\GlobVariabledump.txt"
 $variables = Get-Variable -Scope global
@@ -731,7 +762,6 @@ $outputContent = $variables | ForEach-Object {
 }
 Add-Content -Path $globvardump -Value $outputContent
 }
-
 
 function zip-logs {
 Compress-Archive -path "C:\HCLOGS314" -DestinationPath "$Global:selectedfolder\!ZippedHCLOGS.zip"    #! mark is to put it at top of files for ease
@@ -761,6 +791,7 @@ write-host "Error occurred trying to set registry key/value full error in log."}
 
 testing
 }
+
 Function Bitlocker-Overview {
     $bitlockerstatus = Get-BitLockerVolume | Select-Object MountPoint, VolumeType, VolumeStatus, EncryptionPercentage, CapacityGB
 
