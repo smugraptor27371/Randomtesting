@@ -30,16 +30,14 @@ if ($pxhlpa64status) {
 Write-output "pxhlpa64 service found, this is known to cause issues with windows updates (oct/nov 2026)"
 Write-output ""
 Write-output "strongly suggest deletion of service and driver as well as removal of any disk (cd/dvd) software"
-write-output ""
-Write-output "exiting in 10 seconds to allow manual intervention"
-start-sleep 10
-exit
 
 
 
-#Sc.exe delete pxhlpa64
-#remove-item -path C:\windows\system32\drivers\pxhlpa64.sys
 
+Sc.exe delete pxhlpa64
+remove-item -path C:\windows\system32\drivers\pxhlpa64.sys
+Write-output "pxhlpa64 removed"
+$script:overviewpxhlpa64 = "Pxhlpa64.sys found and removed"
 
 
 } else {
